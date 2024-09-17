@@ -14,6 +14,4 @@ int main(int argc, char **argv, char **env)
     if (!cmd)
         return (0);
     init_struct(cmd);
-    
-
 }
