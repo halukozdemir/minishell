@@ -6,7 +6,7 @@
 /*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 13:38:02 by halozdem          #+#    #+#             */
-/*   Updated: 2024/09/17 14:59:15 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/09/17 15:31:08 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 #include <readline/history.h>
 #include <unistd.h>
 #include <lib/libft/libft.h>
+#include <stdbool.h>
 
 typedef	struct	s_cmd
 {
@@ -29,6 +30,13 @@ typedef	struct	s_cmd
 	bool	squote;
 	char	*line;
 }	t_cmd;
+
+typedef struct s_env
+{
+	char				*key;
+	char				*value;
+	struct s_env		*next;
+}	t_env;
 
 void	init_struct(t_cmd *cmd);
 
