@@ -6,7 +6,7 @@
 /*   By: beyildiz <beyildiz@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/17 15:45:07 by beyildiz          #+#    #+#             */
-/*   Updated: 2024/09/18 15:38:10 by beyildiz         ###   ########.fr       */
+/*   Updated: 2024/09/18 19:16:22 by beyildiz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@ void	lstadd_back(t_env **lst, t_env *new)
 {
 	t_env	*temp;
 
+	printf("------------------\n");
 	temp = *lst;
 	if (!new)
 		return ;
@@ -35,14 +36,14 @@ void	lstadd_back(t_env **lst, t_env *new)
 char	*funckey(char	*env, int end)
 {
 	char	*key;
-
-	key = (char *)malloc((end) * (sizeof(char) + 1));
+	key = (char *)malloc(end * sizeof(char) + 1);
 	key[end + 1] = '\0';
 	while (end != 0)
 	{
 		key[end] = env[end];
 		end--;
 	}
+	printf("-----\n");
 	return (key);
 }
 
@@ -50,18 +51,21 @@ char	*funcval(char	*env, int start)
 {
 	char	*val;
 	int		end;
+	int		i;
 
-	end = 0;
-	while (env[start])
+	i = 0;
+	end = start;
+	while (env[end])
 	{
 		end++;
 	}
 	end--;
-	val = (char *)malloc(end - start + 1);
+	val = (char *)malloc(end - start+ 1);
 	while (env[start])
 	{
-		val[start] = env[start];
+		val[i] = env[start];
 		start++;
+		i++;
 	}
 	val[start] = '\0';
 	return (val);
@@ -78,7 +82,7 @@ int	envfunc(char	**env)
 	end = 0;
 	while (env[i])
 	{
-		while (env[i][end] != '=')
+		while ((env[i][end - 1] && env[i][end] != '='))
 		{
 			end++;
 		}
@@ -87,9 +91,12 @@ int	envfunc(char	**env)
 			return (0);
 		new->next = NULL;
 		new->key = funckey(env[i], end - 1);
+		printf("-----\n");
 		new->value = funcval(env[i], end + 1);
-		lstadd_back(*lst, new);
-		i++;
+		printf("-----\n");
+		lstadd_back(lst, new);
+		if (env[i])
+			i++;
 	}
 	return (0);
 }
@@ -99,3 +106,4 @@ int main(int ac, char **av, char **env)
 	envfunc(env);
 	return (0);
 }
+
