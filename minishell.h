@@ -6,7 +6,7 @@
 /*   By: beyildiz <beyildiz@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 13:38:02 by halozdem          #+#    #+#             */
-/*   Updated: 2024/09/17 16:15:53 by beyildiz         ###   ########.fr       */
+/*   Updated: 2024/09/18 14:58:47 by beyildiz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 #include <unistd.h>
-#include <lib/libft/libft.h>
+#include "lib/libft/libft.h"
 #include <stdbool.h>
 
 typedef	struct	s_cmd

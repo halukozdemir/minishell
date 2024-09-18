@@ -1,6 +1,6 @@
-#include "minishell.h"
+//#include "minishell.h"
 
-int main(int argc, char **argv, char **env)
+/*int main(int argc, char **argv, char **env)
 {
     t_cmd   *cmd;
 
@@ -14,4 +14,4 @@ int main(int argc, char **argv, char **env)
     if (!cmd)
         return (0);
     init_struct(cmd);
-}
+}*/

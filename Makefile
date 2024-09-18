@@ -1,5 +1,5 @@
 NAME = minishell
-SRC = minishell.c init.c
+SRC = main.c init.c env.c
 OBJ := $(SRC:.c=.o)
 CFLAGS = -Wall -Wextra -Werror
 CC = gcc
