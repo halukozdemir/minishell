@@ -1,7 +1,7 @@
 NAME = minishell
 SRC = main.c init.c env.c
 OBJ := $(SRC:.c=.o)
-CFLAGS = -Wall -Wextra -Werror
+CFLAGS = #-Wall -Wextra -Werror
 CC = gcc
 
 LIB_DIR = lib

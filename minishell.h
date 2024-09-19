@@ -6,7 +6,7 @@
 /*   By: beyildiz <beyildiz@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 13:38:02 by halozdem          #+#    #+#             */
-/*   Updated: 2024/09/19 18:33:41 by beyildiz         ###   ########.fr       */
+/*   Updated: 2024/09/19 19:11:20 by beyildiz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,13 +21,6 @@
 #include "lib/libft/libft.h"
 #include <stdbool.h>
 
-typedef struct s_execcmd
-{
-	int		out_file;
-	int		in_file;
-	t_arg	*args;
-	t_arg	*redirs;
-}	t_execcmd;
 
 typedef struct s_redirs
 {
@@ -41,6 +34,14 @@ typedef struct s_arg
 	char	*content;
 	char	*next;
 }	t_arg;
+
+typedef struct s_execcmd
+{
+	int		out_file;
+	int		in_file;
+	t_arg	*args;
+	t_arg	*redirs;
+}	t_execcmd;
 
 typedef	struct	s_cmd
 {
@@ -61,5 +62,6 @@ typedef struct s_env
 }	t_env;
 
 void	init_struct(t_cmd *cmd);
+void	envfunc(char **env);
 
 #endif

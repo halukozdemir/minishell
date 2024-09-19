@@ -6,7 +6,7 @@
 /*   By: beyildiz <beyildiz@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/17 15:45:07 by beyildiz          #+#    #+#             */
-/*   Updated: 2024/09/19 15:48:50 by beyildiz         ###   ########.fr       */
+/*   Updated: 2024/09/19 19:04:38 by beyildiz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,10 +95,3 @@ int	envfunc(char	**env)
 	}
 	return (0);
 }
-
-int main(int ac, char **av, char **env)
-{
-	envfunc(env);
-	return (0);
-}
-
