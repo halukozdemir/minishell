@@ -6,7 +6,7 @@
 /*   By: beyildiz <beyildiz@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/17 15:45:07 by beyildiz          #+#    #+#             */
-/*   Updated: 2024/09/18 19:16:22 by beyildiz         ###   ########.fr       */
+/*   Updated: 2024/09/19 15:48:50 by beyildiz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,10 +16,7 @@ void	lstadd_back(t_env **lst, t_env *new)
 {
 	t_env	*temp;
 
-	printf("------------------\n");
 	temp = *lst;
-	if (!new)
-		return ;
 	if (!*lst)
 		*lst = new;
 	else
@@ -30,20 +27,19 @@ void	lstadd_back(t_env **lst, t_env *new)
 		}
 		temp->next = new;
 	}
-	printf("%s=%s", new->key, new->value);
+	printf("%s=%s\n", new->key, new->value);
 }
 
 char	*funckey(char	*env, int end)
 {
 	char	*key;
-	key = (char *)malloc(end * sizeof(char) + 1);
-	key[end + 1] = '\0';
-	while (end != 0)
+	key = (char *)malloc(end + 1);
+	key[end] = '\0';
+	while (end >= 0)
 	{
 		key[end] = env[end];
 		end--;
 	}
-	printf("-----\n");
 	return (key);
 }
 
@@ -79,21 +75,20 @@ int	envfunc(char	**env)
 	t_env	**lst;
 
 	i = 0;
-	end = 0;
 	while (env[i])
 	{
-		while ((env[i][end - 1] && env[i][end] != '='))
+		end = 0;
+		while ((env[i][end] && env[i][end] != '='))
 		{
 			end++;
 		}
 		new = (t_env *)malloc(sizeof(t_env));
+		lst = (t_env **)malloc(sizeof(t_env));
 		if (!new)
 			return (0);
 		new->next = NULL;
 		new->key = funckey(env[i], end - 1);
-		printf("-----\n");
 		new->value = funcval(env[i], end + 1);
-		printf("-----\n");
 		lstadd_back(lst, new);
 		if (env[i])
 			i++;
