@@ -6,7 +6,7 @@
 /*   By: beyildiz <beyildiz@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 13:38:02 by halozdem          #+#    #+#             */
-/*   Updated: 2024/09/19 19:11:20 by beyildiz         ###   ########.fr       */
+/*   Updated: 2024/09/20 17:17:20 by beyildiz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,9 +59,12 @@ typedef struct s_env
 	char				*key;
 	char				*value;
 	struct s_env		*next;
+	struct s_env		*prev;
 }	t_env;
 
 void	init_struct(t_cmd *cmd);
-void	envfunc(char **env);
+t_env	*new_node(t_env **lst, char *env, int end, int i);
+t_env	**envfunc(char **env, int n);
+int		builtinfunc(char *input, char **env);
 
 #endif

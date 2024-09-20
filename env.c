@@ -6,28 +6,36 @@
 /*   By: beyildiz <beyildiz@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/17 15:45:07 by beyildiz          #+#    #+#             */
-/*   Updated: 2024/09/19 19:04:38 by beyildiz         ###   ########.fr       */
+/*   Updated: 2024/09/20 17:52:23 by beyildiz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-void	lstadd_back(t_env **lst, t_env *new)
+t_env	**lstadd_back(t_env **lst, t_env *new, int n)
 {
 	t_env	*temp;
+	t_env	*temp2;
 
 	temp = *lst;
 	if (!*lst)
+	{
 		*lst = new;
+		new->prev = *lst;
+	}
 	else
 	{
 		while (temp->next)
 		{
+			temp2 = temp;
 			temp = temp->next;
 		}
 		temp->next = new;
+		new->prev = temp2;
 	}
-	printf("%s=%s\n", new->key, new->value);
+	if (n == 1)
+		printf("%s=%s\n", new->key, new->value);
+	return (lst);
 }
 
 char	*funckey(char	*env, int end)
@@ -67,7 +75,7 @@ char	*funcval(char	*env, int start)
 	return (val);
 }
 
-int	envfunc(char	**env)
+t_env	**envfunc(char	**env, int n)
 {
 	int		i;
 	int		end;
@@ -82,16 +90,15 @@ int	envfunc(char	**env)
 		{
 			end++;
 		}
-		new = (t_env *)malloc(sizeof(t_env));
 		lst = (t_env **)malloc(sizeof(t_env));
+		new = (t_env *)malloc(sizeof(t_env));
 		if (!new)
 			return (0);
 		new->next = NULL;
 		new->key = funckey(env[i], end - 1);
 		new->value = funcval(env[i], end + 1);
-		lstadd_back(lst, new);
-		if (env[i])
-			i++;
+		lstadd_back(lst, new, n);
+		i++;
 	}
-	return (0);
+	return (lst);
 }
