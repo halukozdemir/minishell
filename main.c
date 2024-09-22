@@ -46,8 +46,15 @@ int main(int argc, char **argv, char **env)
 		if (!input)
 			break;
 		add_history(input);
-		parser(input);
+		char **str = parser(input);
+		int i = 0;
 		//printf("%s\n", input);
+		while (str[i])
+		{
+			printf("%s \n", str[i]);
+			i++;
+		}
+
 		builtinfunc(input, env);
     }
     cmd = (t_cmd *)malloc(sizeof(t_cmd));

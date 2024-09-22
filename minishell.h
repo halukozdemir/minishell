@@ -6,7 +6,7 @@
 /*   By: halozdem <halozdem@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 13:38:02 by halozdem          #+#    #+#             */
-/*   Updated: 2024/09/22 21:14:05 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/09/22 23:21:30 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,6 +66,10 @@ void	init_struct(t_cmd *cmd);
 t_env	*new_node(t_env **lst, char *env, int end, int i);
 t_env	**envfunc(char **env, int n);
 int		builtinfunc(char *input, char **env);
-void	parser(char *input);
+char	**parser(char *input);
+char	**split_words(char *input, char **str, unsigned int word_count);
+char	*put_word(char *word, char *input, int i, int word_len);
+int		word_counter(char *input);
+
 
 #endif

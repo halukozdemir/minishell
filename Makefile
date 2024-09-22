@@ -25,10 +25,11 @@ $(NAME): $(OBJ) $(LIB_BUILD_DIR)
 
 clean:
 	rm -f $(OBJ)
-	rm -rf $(LIB_BUILD_DIR)
 
 fclean: clean
 	rm -f $(NAME)
+	rm -rf $(LIB_BUILD_DIR)
+
 
 re: fclean all
 
