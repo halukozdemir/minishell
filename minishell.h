@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: beyildiz <beyildiz@student.42istanbul.c    +#+  +:+       +#+        */
+/*   By: halozdem <halozdem@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 13:38:02 by halozdem          #+#    #+#             */
-/*   Updated: 2024/09/20 17:17:20 by beyildiz         ###   ########.fr       */
+/*   Updated: 2024/09/22 21:14:05 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,5 +66,6 @@ void	init_struct(t_cmd *cmd);
 t_env	*new_node(t_env **lst, char *env, int end, int i);
 t_env	**envfunc(char **env, int n);
 int		builtinfunc(char *input, char **env);
+void	parser(char *input);
 
 #endif

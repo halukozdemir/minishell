@@ -21,7 +21,7 @@ RL_LIBRARY_VERSION = 8.2
 SHELL = /bin/sh
 RM = rm -f
 
-prefix = /Users/beyildiz/Desktop/gercekminishell/lib/readline-8.2/build
+prefix = /Users/halozdem/Desktop/minishell/lib/readline-8.2/build
 exec_prefix = ${prefix}
 
 datarootdir = ${prefix}/share
@@ -32,7 +32,7 @@ datadir = ${datarootdir}
 
 top_srcdir = ..
 #BUILD_DIR = .
-BUILD_DIR = /Users/beyildiz/Desktop/gercekminishell/lib/readline-8.2
+BUILD_DIR = /Users/halozdem/Desktop/minishell/lib/readline-8.2
 installdir = $(datadir)/readline
 
 INSTALL = /usr/bin/install -c

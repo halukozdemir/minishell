@@ -40,12 +40,13 @@ int main(int argc, char **argv, char **env)
 		printf("Argument error. \n");
 		exit(1);
 	}
-    while (1) 
+    while (1)
 	{
 		input = readline("minishell> ");
 		if (!input)
 			break;
 		add_history(input);
+		parser(input);
 		//printf("%s\n", input);
 		builtinfunc(input, env);
     }

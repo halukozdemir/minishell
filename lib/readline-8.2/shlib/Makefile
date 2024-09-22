@@ -32,7 +32,7 @@ datarootdir = ${prefix}/share
 srcdir = .
 VPATH = ..
 topdir = ..
-BUILD_DIR = /Users/beyildiz/Desktop/gercekminishell/lib/readline-8.2
+BUILD_DIR = /Users/halozdem/Desktop/minishell/lib/readline-8.2
 
 INSTALL = /usr/bin/install -c
 INSTALL_PROGRAM = ${INSTALL}
@@ -49,10 +49,10 @@ LN = ln
 
 SHELL = /bin/sh
 
-host_os = darwin19.6.0
+host_os = darwin22.6.0
 host_vendor = apple
 
-prefix = /Users/beyildiz/Desktop/gercekminishell/lib/readline-8.2/build
+prefix = /Users/halozdem/Desktop/minishell/lib/readline-8.2/build
 exec_prefix = ${prefix}
 includedir = ${prefix}/include
 bindir = ${exec_prefix}/bin
