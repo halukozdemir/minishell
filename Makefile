@@ -1,5 +1,5 @@
 NAME = minishell
-SRC = main.c init.c env.c parser.c
+SRC = main.c init.c env.c parser.c meta_char.c
 OBJ := $(SRC:.c=.o)
 CFLAGS = #-Wall -Wextra -Werror
 CC = gcc
@@ -10,7 +10,11 @@ LIB_ARCHIVE = $(LIB_NAME).tar.gz
 LIB_URL = https://ftp.gnu.org/gnu/readline/$(LIB_ARCHIVE)
 LIB_BUILD_DIR = $(LIB_DIR)/$(LIB_NAME)/build
 
-all: $(LIB_BUILD_DIR) $(NAME)
+# libft ayarları
+LIBFT_DIR = lib/libft
+LIBFT_MAKEFILE = $(LIBFT_DIR)/Makefile
+
+all: $(LIB_BUILD_DIR) $(LIBFT_DIR) $(NAME)
 
 $(LIB_BUILD_DIR):
 	@mkdir -p $(LIB_DIR)
@@ -20,16 +24,20 @@ $(LIB_BUILD_DIR):
 	@make -C $(LIB_DIR)/$(LIB_NAME)
 	@make -C $(LIB_DIR)/$(LIB_NAME) install
 
-$(NAME): $(OBJ) $(LIB_BUILD_DIR)
-	$(CC) $(CFLAGS) $(OBJ) -o $(NAME) -L$(LIB_BUILD_DIR)/lib -I$(LIB_BUILD_DIR)/include -lreadline
+$(LIBFT_DIR):
+	@make -C $(LIBFT_DIR)
+
+$(NAME): $(OBJ) $(LIB_BUILD_DIR) $(LIBFT_DIR)
+	$(CC) $(CFLAGS) $(OBJ) -o $(NAME) -L$(LIB_BUILD_DIR)/lib -I$(LIB_BUILD_DIR)/include -lreadline -L$(LIBFT_DIR) -lft
 
 clean:
 	rm -f $(OBJ)
+	@make -C $(LIBFT_DIR) clean
 
 fclean: clean
 	rm -f $(NAME)
 	rm -rf $(LIB_BUILD_DIR)
-
+	@make -C $(LIBFT_DIR) fclean
 
 re: fclean all
 

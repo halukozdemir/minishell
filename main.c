@@ -32,7 +32,8 @@ int		builtinfunc(char *input, char **env)
 int main(int argc, char **argv, char **env)
 {
 	t_cmd   *cmd;
-	char *input;
+	char 	*input;
+	char	**str;
 
 	(void)argv;
 	if (argc != 1)
@@ -46,15 +47,8 @@ int main(int argc, char **argv, char **env)
 		if (!input)
 			break;
 		add_history(input);
-		char **str = parser(input);
-		int i = 0;
-		//printf("%s\n", input);
-		while (str[i])
-		{
-			printf("%s \n", str[i]);
-			i++;
-		}
-
+		str = split_by_real_spaces(input);
+		split_by_meta(str);
 		builtinfunc(input, env);
     }
     cmd = (t_cmd *)malloc(sizeof(t_cmd));
