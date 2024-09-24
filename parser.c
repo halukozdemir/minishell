@@ -50,7 +50,7 @@ char	*put_word(char *word, char *input, int start, int word_len)
 
 	while (word_len > 0)
 	{
-		if (input[k] != 34)
+		if (input[k] != ' ' && input[k] != 34)
 		{
 			word[j] = input[k];
 			j++;
@@ -59,7 +59,7 @@ char	*put_word(char *word, char *input, int start, int word_len)
 		word_len--;
 	}
 	word[j] = '\0';
-	return word;
+	return (word);
 }
 
 char	**split_words(char *input, char **str, unsigned int word_count)
@@ -94,11 +94,20 @@ char	**split_by_real_spaces(char *input)
 {
 	unsigned int	word_count;
 	char			**str;
+	int i;
 
+	i = 0;
 	word_count = word_counter(input);
-	str = 	(char **)malloc(sizeof(char *) * (word_count + 1));
+	str = (char **)malloc(sizeof(char *) * (word_count + 1));
 	if (!str)
 		return (0);
 	str = split_words(input, str, word_count);
+	while (str[i])
+	{
+		printf("%s\n", str[i]);
+		i++;
+	}
+	printf("gercek boşluğa ayrılmışken = %d\n_______________________________________\n\n", word_count);
+
 	return (str);
 }
