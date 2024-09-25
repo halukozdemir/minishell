@@ -50,7 +50,7 @@ char	*put_word(char *word, char *input, int start, int word_len)
 
 	while (word_len > 0)
 	{
-		if (input[k] != ' ' && input[k] != 34)
+		if (input[k] != ' ')
 		{
 			word[j] = input[k];
 			j++;
@@ -108,6 +108,5 @@ char	**split_by_real_spaces(char *input)
 		i++;
 	}
 	printf("gercek boşluğa ayrılmışken = %d\n_______________________________________\n\n", word_count);
-
 	return (str);
 }

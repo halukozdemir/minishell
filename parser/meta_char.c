@@ -59,7 +59,7 @@ char	**put_string(char **new_str, char **str)
 					start = j;
 				}
 			}
-			j++;
+			// j++;
 		}
 		i++;
 		start = 0;
@@ -71,6 +71,8 @@ char	**put_string(char **new_str, char **str)
 
 int 	while_loop(char **str, int i, int j, int word_count)
 {
+	int n = 0;
+
 	while (str[i][j])
 	{
 		while (ft_isprint(str[i][j]) && !is_meta(str[i][j]))
@@ -80,8 +82,11 @@ int 	while_loop(char **str, int i, int j, int word_count)
 				word_count++;
 				break ;
 			}
+			n = 1;
 			j++;
 		}
+		if (n == 0)
+			j++;
 		if (is_meta(str[i][j]))
 		{
 			word_count++;
@@ -106,7 +111,6 @@ char	**split_by_meta(char **str)
 	i = 0;
 	j = 0;
 	word_count = 0;
-
 	while (str[i])
 	{
 		word_count = while_loop(str, i, j, word_count);
