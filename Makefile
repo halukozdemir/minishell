@@ -1,5 +1,5 @@
 NAME = minishell
-SRC = main.c init.c env.c parser.c meta_char.c
+SRC = main.c init.c env.c parser/parser.c parser/meta_char.c
 OBJ := $(SRC:.c=.o)
 CFLAGS = #-Wall -Wextra -Werror
 CC = gcc
@@ -14,7 +14,7 @@ LIB_BUILD_DIR = $(LIB_DIR)/$(LIB_NAME)/build
 LIBFT_DIR = lib/libft
 LIBFT_MAKEFILE = $(LIBFT_DIR)/Makefile
 
-all: $(LIB_BUILD_DIR) $(LIBFT_DIR) $(NAME)
+all: $(LIB_BUILD_DIR) libft $(NAME)
 
 $(LIB_BUILD_DIR):
 	@mkdir -p $(LIB_DIR)
@@ -24,10 +24,10 @@ $(LIB_BUILD_DIR):
 	@make -C $(LIB_DIR)/$(LIB_NAME)
 	@make -C $(LIB_DIR)/$(LIB_NAME) install
 
-$(LIBFT_DIR):
+libft:
 	@make -C $(LIBFT_DIR)
 
-$(NAME): $(OBJ) $(LIB_BUILD_DIR) $(LIBFT_DIR)
+$(NAME): $(OBJ) $(LIB_BUILD_DIR) libft
 	$(CC) $(CFLAGS) $(OBJ) -o $(NAME) -L$(LIB_BUILD_DIR)/lib -I$(LIB_BUILD_DIR)/include -lreadline -L$(LIBFT_DIR) -lft
 
 clean:
@@ -41,4 +41,4 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: re fclean clean all
+.PHONY: re fclean clean all libft
