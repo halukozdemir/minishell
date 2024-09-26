@@ -17,7 +17,9 @@ int		word_counter(char *input)
 	int		count;
 	bool	in_quote;
 	bool	in_word;
+	char 	*str;
 
+	str = "<>| \0";
 	i = 0;
 	count = 0;
 	in_quote = false;
@@ -30,8 +32,14 @@ int		word_counter(char *input)
 			in_quote = !in_quote;
 		if (!in_quote)
 		{
-			if (input[i] == ' ')
-				in_word = false;
+			if (ft_strchr(str, input[i]))
+			{
+				if (input[i] != ' ')
+				{
+					count++;
+					in_word = false;
+				}
+			}
 			else if (!in_word)
 			{
 				in_word = true;
@@ -40,6 +48,7 @@ int		word_counter(char *input)
 		}
 		i++;
 	}
+	printf("%d-*-*-*-\n", count);
 	return (count);
 }
 
@@ -50,11 +59,8 @@ char	*put_word(char *word, char *input, int start, int word_len)
 
 	while (word_len > 0)
 	{
-		if (input[k] != ' ')
-		{
-			word[j] = input[k];
-			j++;
-		}
+		word[j] = input[k];
+		j++;
 		k++;
 		word_len--;
 	}
@@ -68,20 +74,29 @@ char	**split_words(char *input, char **str, unsigned int word_count)
 	int		word = 0;
 	int		word_len = 0;
 	bool	in_quote = false;
+	char	*chars;
 
+	chars = "<>| \0";
 	while (word < word_count)
 	{
 		while (input[i] && input[i] == ' ' && !in_quote)
 			i++;
 		int start = i;
-		while (input[i] && (input[i] != ' ' || in_quote))
+		while (input[i] && (!ft_strchr(chars, input[i]) || in_quote))
 		{
 			if (input[i] == 34)
 				in_quote = !in_quote;
 			word_len++;
 			i++;
 		}
+		// Eğer özel bir karakterle karşılaşırsan, tek başına bir kelime olmalı
+		if (ft_strchr(chars, input[i]) && !in_quote && word_len == 0)
+		{
+			word_len = 1;
+			i++;
+		}
 		str[word] = (char *)malloc((sizeof(char) * (word_len + 1)));
+		printf("wordlen: %d\n", word_len);
 		put_word(str[word], input, start, word_len);
 		word_len = 0;
 		word++;
@@ -94,7 +109,7 @@ char	**split_by_real_spaces(char *input)
 {
 	unsigned int	word_count;
 	char			**str;
-	int i;
+	int 			i;
 
 	i = 0;
 	word_count = word_counter(input);
@@ -107,6 +122,5 @@ char	**split_by_real_spaces(char *input)
 		printf("%s\n", str[i]);
 		i++;
 	}
-	printf("gercek boşluğa ayrılmışken = %d\n_______________________________________\n\n", word_count);
 	return (str);
 }
