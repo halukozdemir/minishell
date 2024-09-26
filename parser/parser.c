@@ -13,29 +13,34 @@ static char	**free_array(char **ptr, int i)
 
 int word_counter(char *input)
 {
-    int i = 0;
-    int count = 0;
-    bool in_quote = false;
-    bool in_word = false;
-    char *special_chars = "<>| \0";  // Özel karakterler
+    int i;
+    int count;
+    bool in_quote;
+    bool in_word;
+    char *special_chars;
 
-    while (input[i] == ' ') // Baştaki boşlukları atla
+    special_chars = "<>| \0";
+    i = 0;
+    count = 0;
+    in_quote = false;
+    in_word = false;
+
+    while (input[i] == ' ')
         i++;
-
     while (input[i])
     {
-        if (input[i] == 34)  // Çift tırnak karakteri
+        if (input[i] == 34)
             in_quote = !in_quote;
 
         if (!in_quote)
         {
-            if (ft_strchr(special_chars, input[i]))  // Eğer özel bir karaktere denk gelirsen
+            if (ft_strchr(special_chars, input[i]))
             {
-                if (input[i] != ' ')  // Boşluk değilse, bu bir kelimedir
+                if (input[i] != ' ')
                     count++;
                 in_word = false;
             }
-            else if (!in_word)  // Yeni bir kelime başlıyorsa
+            else if (!in_word)
             {
                 in_word = true;
                 count++;
@@ -43,7 +48,6 @@ int word_counter(char *input)
         }
         i++;
     }
-
     printf("%d-*-*-*-\n", count);
     return count;
 }
@@ -70,31 +74,31 @@ char **split_words(char *input, char **str, unsigned int word_count)
     int word = 0;
     int word_len = 0;
     bool in_quote = false;
-    char *special_chars = "<>| \0";  // Özel karakterler
+    char *special_chars = "<>| \0";
 
     while (word < word_count)
     {
-        while (input[i] && input[i] == ' ' && !in_quote)  // Boşlukları atla
+        while (input[i] && input[i] == ' ' && !in_quote)
             i++;
 
         int start = i;
-        while (input[i] && (!ft_strchr(special_chars, input[i]) || in_quote))  // Özel karaktere denk gelene kadar kelimeyi oku
+        while (input[i] && (!ft_strchr(special_chars, input[i]) || in_quote))
         {
-            if (input[i] == 34)  // Çift tırnak
+            if (input[i] == 34)
                 in_quote = !in_quote;
             word_len++;
             i++;
         }
 
-        if (ft_strchr(special_chars, input[i]) && !in_quote && word_len == 0)  // Özel bir karakter bulduysan
+        if (ft_strchr(special_chars, input[i]) && !in_quote && word_len == 0)
         {
-            word_len = 1;  // Özel karakter tek başına bir kelime olmalı
+            word_len = 1;
             i++;
         }
 
         str[word] = (char *)malloc((sizeof(char) * (word_len + 1)));
         if (!str[word])
-            return free_array(str, word);  // Eğer malloc başarısız olursa, belleği temizle
+            return free_array(str, word);
         put_word(str[word], input, start, word_len);
         word_len = 0;
         word++;
