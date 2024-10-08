@@ -18,6 +18,9 @@ int word_counter(char *input)
     bool in_quote;
     bool in_word;
     char *special_chars;
+	char const	*quotes = "'\"";
+	char	quote_type;
+
 
     special_chars = "<>| \0";
     i = 0;
@@ -29,9 +32,17 @@ int word_counter(char *input)
         i++;
     while (input[i])
     {
-        if (input[i] == 34)
-            in_quote = !in_quote;
-
+        if (ft_strchr(quotes, input[i]))
+		{
+			if (in_quote == false)
+			{
+				quote_type = input[i];
+				in_quote = !in_quote;
+			}
+			else
+				if (input[i] == quote_type)
+            		in_quote = !in_quote;
+		}
         if (!in_quote)
         {
             if (ft_strchr(special_chars, input[i]))
