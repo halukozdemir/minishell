@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
+/*   By: halozdem <halozdem@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 13:38:02 by halozdem          #+#    #+#             */
-/*   Updated: 2024/10/08 17:43:36 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/10/12 00:38:18 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,12 +22,12 @@
 #include <stdbool.h>
 
 
-typedef struct s_redirs
+typedef struct s_redir
 {
 	//int		type;
 	char	*file;
 	int		fd;
-}  t_redirs;
+}  t_redir;
 
 typedef struct s_arg
 {
@@ -62,7 +62,21 @@ typedef struct s_env
 	struct s_env		*prev;
 }	t_env;
 
-void	init_struct(t_cmd *cmd);
+//yeni structlarım
+
+typedef	struct s_args
+{
+	char	*str;
+}	t_args;
+
+typedef struct s_command
+{
+	char			*str;
+	t_args			*args;
+	struct s_list	*next;
+}	t_command;
+
+void	init_struct(t_command *cmd);
 t_env	*new_node(t_env **lst, char *env, int end, int i);
 t_env	**envfunc(char **env, int n);
 int		builtinfunc(char *input, char **env);

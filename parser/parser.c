@@ -62,6 +62,8 @@ int word_counter(char *input)
         i++;
     }
     printf("%d-*-*-*-\n", count);
+    if (in_quote)
+        return (-1);
     return count;
 }
 
@@ -145,6 +147,8 @@ char	**split_by_real_spaces(char *input)
 
 	i = 0;
 	word_count = word_counter(input);
+    if (word_count == -1)
+        return (NULL);
 	str = (char **)malloc(sizeof(char *) * (word_count + 1));
 	if (!str)
 		return (0);
