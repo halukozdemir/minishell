@@ -47,8 +47,7 @@ int main(int argc, char **argv, char **env)
 		if (!input)
 			break;
 		add_history(input);
-		//str = split_by_real_spaces(input);
-		// split_by_meta(split_by_real_spaces(input));
+
 		split_by_real_spaces(input);
 		builtinfunc(input, env);
     }

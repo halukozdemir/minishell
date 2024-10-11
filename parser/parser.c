@@ -49,6 +49,8 @@ int word_counter(char *input)
             {
                 if (input[i] != ' ')
                     count++;
+                if ((input[i] == '<' || input[i] == '>') && input[i] == input[i + 1])
+                    i++;
                 in_word = false;
             }
             else if (!in_word)
@@ -86,6 +88,9 @@ char **split_words(char *input, char **str, unsigned int word_count)
     int word_len = 0;
     bool in_quote = false;
     char *special_chars = "<>| \0";
+    char const	*quotes = "'\"";
+    char    quote_type;
+
 
     while (word < word_count)
     {
@@ -95,8 +100,17 @@ char **split_words(char *input, char **str, unsigned int word_count)
         int start = i;
         while (input[i] && (!ft_strchr(special_chars, input[i]) || in_quote))
         {
-            if (input[i] == 34)
-                in_quote = !in_quote;
+            if (ft_strchr(quotes, input[i]))
+            {
+                if (in_quote == false)
+                {
+                    quote_type = input[i];
+                    in_quote = !in_quote;
+                }
+                else
+                    if (input[i] == quote_type)
+                        in_quote = !in_quote;
+            }
             word_len++;
             i++;
         }
@@ -104,6 +118,11 @@ char **split_words(char *input, char **str, unsigned int word_count)
         if (ft_strchr(special_chars, input[i]) && !in_quote && word_len == 0)
         {
             word_len = 1;
+            if(input[i] == input[i + 1])
+            {
+                i++;
+                word_len = 2;
+            }
             i++;
         }
 
