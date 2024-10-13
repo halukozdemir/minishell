@@ -47,12 +47,9 @@ int main(int argc, char **argv, char **env)
 		if (!input)
 			break;
 		add_history(input);
-
+		syntax_cont(input);
 		str = split_by_real_spaces(input);
-		builtinfunc(input, env);
+		run_cmds(input, env);
     }
-    cmd = (t_command *)malloc(sizeof(t_command));
-    if (!cmd)
-        return (0);
-    init_struct(cmd);
+	return (0);
 }

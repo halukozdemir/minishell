@@ -1,5 +1,5 @@
 NAME = minishell
-SRC = main.c parser/init.c env.c parser/parser.c
+SRC = main.c executer/run_env.c parser/parser.c parser/syntax_cont.c executer/run_commands.c
 OBJ := $(SRC:.c=.o)
 CFLAGS = #-Wall -Wextra -Werror
 CC = gcc

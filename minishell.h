@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: halozdem <halozdem@student.42.fr>          +#+  +:+       +#+        */
+/*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 13:38:02 by halozdem          #+#    #+#             */
-/*   Updated: 2024/10/12 00:38:18 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/10/13 16:10:56 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,6 +85,8 @@ char	**split_words(char *input, char **str, unsigned int word_count);
 char	*put_word(char *word, char *input, int i, int word_len);
 int		word_counter(char *input);
 char	**split_by_meta(char **str);
-
+int		syntax_cont(char *input);
+void	run_cmds(char *input, char **env);
+void	syntax_error(void);
 
 #endif

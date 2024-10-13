@@ -63,7 +63,7 @@ int word_counter(char *input)
     }
     printf("%d-*-*-*-\n", count);
     if (in_quote)
-        return (-1);
+        syntax_error();
     return count;
 }
 
