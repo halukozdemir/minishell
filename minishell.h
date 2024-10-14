@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: beyildiz <beyildiz@student.42istanbul.c    +#+  +:+       +#+        */
+/*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 13:38:02 by halozdem          #+#    #+#             */
-/*   Updated: 2024/10/13 18:28:12 by beyildiz         ###   ########.fr       */
+/*   Updated: 2024/10/14 17:57:27 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,6 @@
 #include <unistd.h>
 #include "lib/libft/libft.h"
 #include <stdbool.h>
-
 
 typedef struct s_redir
 {
@@ -79,16 +78,17 @@ typedef struct s_command
 void	init_struct(t_command *cmd);
 t_env	*new_node(t_env **lst, char *env, int end, int i);
 t_env	**envfunc(char **env, int n);
-char	**split_by_real_spaces(char *input);
+char	**get_token(char *input);
 char	**split_words(char *input, char **str, unsigned int word_count);
 char	*put_word(char *word, char *input, int i, int word_len);
 int		word_counter(char *input);
 char	**split_by_meta(char **str);
 void	run_cmds(char *input, char **env);
-int		syntax_cont(char *input);
-void	syntax_error(void);
-void	pipe_cont(char *input);
-void	redir_cont(char *input);
-void	redir_cont2(char *input, int i, char c);
+int		syntax_cont(char *input, bool *has_error);
+int	pipe_cont(char *input);
+int	redir_cont(char *input);
+int	redir_cont2(char *input, int i, char c);
+int	quote_cont(char *input);
+int	is_meta(char *input, int i);
 
 #endif

@@ -28,7 +28,8 @@ int word_counter(char *input)
     in_quote = false;
     in_word = false;
 
-    while (input[i] == ' ')
+    while (input[i] == ' ' || input[i] == '\t' || input[i] == '\v'
+		|| input[i] == '\f' || input[i] == '\r')
         i++;
     while (input[i])
     {
@@ -62,8 +63,6 @@ int word_counter(char *input)
         i++;
     }
     printf("%d-*-*-*-\n", count);
-    if (in_quote)
-        syntax_error();
     return count;
 }
 
@@ -139,7 +138,7 @@ char **split_words(char *input, char **str, unsigned int word_count)
     return str;
 }
 
-char	**split_by_real_spaces(char *input)
+char	**get_token(char *input)
 {
 	unsigned int	word_count;
 	char			**str;
