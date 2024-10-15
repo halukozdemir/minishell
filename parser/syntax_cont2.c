@@ -12,3 +12,4 @@ int	is_meta(char *input, int i)
 	}
 	return 0;
 }
+

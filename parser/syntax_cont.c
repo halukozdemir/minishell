@@ -107,8 +107,13 @@ int	redir_cont(char *input)
 			while (input[i] == ' ' || input[i] == '\t' || input[i] == '\v'
 				|| input[i] == '\f' || input[i] == '\r')
 				i++;
-			if (input[i] == '|' || input[i] == '<' || input[i] == '>')
+			if (input[i] == '\0')
 				return 1;
+			if ((input[i] == '|' || input[i] == '<' || input[i] == '>') && input[i-1] == ' ')
+				return 1;
+			while (input[i] == ' ' || input[i] == '\t' || input[i] == '\v'
+				|| input[i] == '\f' || input[i] == '\r')
+				i++;
 			if (input[i + 1] && input[i+1] == '>' && input[i+2] == '\0') //buraya bakılacak
 				return 1;
 			redir_cont2(input, i, '<');
@@ -118,11 +123,10 @@ int	redir_cont(char *input)
 			i++;
 			while (input[i] == ' ' || input[i] == '\t' || input[i] == '\v'
 				|| input[i] == '\f' || input[i] == '\r')
-			{
-				space = 1;
 				i++;
-			}
-			if (space == 1 && (input[i] == '|' || input[i] == '>' || input[i] == '<')) 
+			if (input[i] == '\0')
+				return 1;
+			if ((input[i] == '|' || input[i] == '>' || input[i] == '<')) 
 				return 1;
 			if (input[i + 1] && input[i+1] == '<' && input[i+2] == '\0')
 				return 1;
