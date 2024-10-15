@@ -78,7 +78,9 @@ int	redir_cont(char *input)
 	bool	in_quote;
 	char const	*quotes = "'\"";
 	char    quote_type;
+	int space;
 
+	space = 0;
 	in_quote = false;
 	i = 0;
 	while (input[i] == ' ' || input[i] == '\t' || input[i] == '\v'
@@ -101,6 +103,7 @@ int	redir_cont(char *input)
 		}
 		if (input[i] == '>' && in_quote == false)
 		{
+			i++;
 			while (input[i] == ' ' || input[i] == '\t' || input[i] == '\v'
 				|| input[i] == '\f' || input[i] == '\r')
 				i++;
@@ -110,15 +113,20 @@ int	redir_cont(char *input)
 				return 1;
 			redir_cont2(input, i, '<');
 		}
-		else if (input[i] == '<')
+		else if (input[i] == '<' && in_quote == false)
 		{
+			i++;
 			while (input[i] == ' ' || input[i] == '\t' || input[i] == '\v'
 				|| input[i] == '\f' || input[i] == '\r')
+			{
+				space = 1;
 				i++;
-			if (input[i] == '|' || input[i] == '<' || input[i] == '>')
+			}
+			if (space == 1 && (input[i] == '|' || input[i] == '>' || input[i] == '<')) 
 				return 1;
 			if (input[i + 1] && input[i+1] == '<' && input[i+2] == '\0')
 				return 1;
+			space = 0;
 			redir_cont2(input, i, '>');
 		}
 		i++;
