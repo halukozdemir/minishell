@@ -104,13 +104,13 @@ int	redir_cont(char *input)
 			while (input[i] == ' ' || input[i] == '\t' || input[i] == '\v'
 				|| input[i] == '\f' || input[i] == '\r')
 				i++;
-			if (input[i] == '|' || input[i] == '<' || input[i] == '>')
+			if (input[i + 1] && (input[i + 1] == '|' || input[i + 1] == '<' || input[i + 1] == '>'))
 				return 1;
 			if (input[i + 1] && input[i+1] == '>' && input[i+2] == '\0') //buraya bakılacak
 				return 1;
 			redir_cont2(input, i, '<');
 		}
-		else if (input[i] == '<')
+		else if (input[i] == '<' && in_quote == false)
 		{
 			while (input[i] == ' ' || input[i] == '\t' || input[i] == '\v'
 				|| input[i] == '\f' || input[i] == '\r')
