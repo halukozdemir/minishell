@@ -13,3 +13,10 @@ int	is_meta(char *input, int i)
 	return 0;
 }
 
+int	is_space(char c)
+{
+	if (c == ' ' || c == '\t' || c == '\v'
+		|| c == '\f' || c == '\r')
+		return 1;
+	return 0;
+}

@@ -111,7 +111,7 @@ int	redir_cont(char *input)
 				i++;
 			if (input[i] == '\0')
 				return 1;
-			if ((input[i] == '|' || input[i] == '<' || input[i] == '>') && input[i-1] == ' ')
+			if ((input[i] == '|' || input[i] == '<' || input[i] == '>') && is_space(input[i-1]) == 1)
 				return 1;
 			if (input[j] == '<')
 				return 1;
@@ -131,7 +131,7 @@ int	redir_cont(char *input)
 				i++;
 			if (input[i] == '\0')
 				return 1;
-			if ((input[i] == '|' || input[i] == '>' || input[i] == '<') && input[i-1] == ' ')
+			if ((input[i] == '|' || input[i] == '>' || input[i] == '<') && is_space(input[i-1]) == 1)
 				return 1;
 			if (input[j] == '>')
 				return 1;
