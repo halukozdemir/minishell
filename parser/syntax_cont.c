@@ -113,7 +113,12 @@ int	redir_cont(char *input)
 				return 1;
 			if (input[i] == '>' && is_space(input[i-1]) == 1)
 				return 1;
-			if (input[j] == '<')
+			if ((input[i] == '>' && (input[i+1] == '>' || input[i+1] == '<')))
+				return 1;
+			while (input[i] == ' ' || input[i] == '\t' || input[i] == '\v'
+				|| input[i] == '\f' || input[i] == '\r')
+				i++;
+			if (is_meta(input, i) == 1)
 				return 1;
 			if (input[i] == '<' || input[i] == '|')
 				return 1;
@@ -133,8 +138,12 @@ int	redir_cont(char *input)
 				i++;
 			if (input[i] == '\0')
 				return 1;
-			printf("hhhhhhhhhh\n");
 			if (input[i] == '<' && is_space(input[i-1]) == 1)
+				return 1;
+			while (input[i] == ' ' || input[i] == '\t' || input[i] == '\v'
+				|| input[i] == '\f' || input[i] == '\r')
+				i++;
+			if (is_meta(input, i) == 1)
 				return 1;
 			if (input[j] == '>')
 				return 1;
