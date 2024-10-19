@@ -1,8 +1,8 @@
 NAME = minishell
 SRC = main.c executer/run_env.c parser/parser.c parser/syntax_cont.c executer/run_commands.c \
-	parser/syntax_cont2.c 
+	parser/syntax_cont2.c
 OBJ := $(SRC:.c=.o)
-CFLAGS = #-Wall -Wextra -Werror
+CFLAGS = -fsanitize=address -g#-Wall -Wextra -Werror
 CC = gcc
 
 LIB_DIR = lib

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
+/*   By: beyildiz <beyildiz@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 13:38:02 by halozdem          #+#    #+#             */
-/*   Updated: 2024/10/14 17:57:27 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/10/19 16:34:48 by beyildiz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,10 +85,11 @@ int		word_counter(char *input);
 char	**split_by_meta(char **str);
 void	run_cmds(char *input, char **env);
 int		syntax_cont(char *input, bool *has_error);
-int	pipe_cont(char *input);
-int	redir_cont(char *input);
-int	redir_cont2(char *input, int i, char c);
-int	quote_cont(char *input);
-int	is_meta(char *input, int i);
+int		pipe_cont(char *input);
+int		redir_cont(char *input);
+int		redir_cont2(char *input, int i, char c);
+int		quote_cont(char *input);
+int		is_meta(char *input, int i);
+int		is_space(char c);
 
 #endif
