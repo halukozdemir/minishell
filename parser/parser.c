@@ -62,7 +62,7 @@ int word_counter(char *input)
         }
         i++;
     }
-    printf("%d-*-*-*-\n", count);
+    // printf("%d-*-*-*-\n", count);
     return count;
 }
 
@@ -152,10 +152,10 @@ char	**get_token(char *input)
 	if (!str)
 		return (0);
 	str = split_words(input, str, word_count);
-	while (str[i])
-	{
-		printf("%s\n", str[i]);
-		i++;
-	}
+	// while (str[i])
+	// {
+	// 	printf("%s\n", str[i]);
+	// 	i++;
+	// }
 	return (str);
 }

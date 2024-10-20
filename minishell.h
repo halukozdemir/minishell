@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: beyildiz <beyildiz@student.42istanbul.c    +#+  +:+       +#+        */
+/*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 13:38:02 by halozdem          #+#    #+#             */
-/*   Updated: 2024/10/19 16:34:48 by beyildiz         ###   ########.fr       */
+/*   Updated: 2024/10/20 19:05:18 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,13 +77,12 @@ typedef struct s_command
 
 void	init_struct(t_command *cmd);
 t_env	*new_node(t_env **lst, char *env, int end, int i);
-t_env	**envfunc(char **env, int n);
 char	**get_token(char *input);
 char	**split_words(char *input, char **str, unsigned int word_count);
 char	*put_word(char *word, char *input, int i, int word_len);
 int		word_counter(char *input);
 char	**split_by_meta(char **str);
-void	run_cmds(char *input, char **env);
+void	run_cmds(char *input, t_env *env);
 int		syntax_cont(char *input, bool *has_error);
 int		pipe_cont(char *input);
 int		redir_cont(char *input);
@@ -91,5 +90,11 @@ int		redir_cont2(char *input, int i, char c);
 int		quote_cont(char *input);
 int		is_meta(char *input, int i);
 int		is_space(char c);
+void	get_dollar(char *input, t_env *env);
+t_env	**lstadd_back2(t_env **lst, t_env *new);
+t_env	*envfunc2(char	**env);
+char	*funcval(char	*env, int start);
+char	*funckey(char	*env, int end);
+void	run_env(t_env *env2);
 
 #endif
