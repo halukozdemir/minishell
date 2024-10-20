@@ -6,7 +6,7 @@
 /*   By: beyildiz <beyildiz@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 13:38:02 by halozdem          #+#    #+#             */
-/*   Updated: 2024/10/19 16:34:48 by beyildiz         ###   ########.fr       */
+/*   Updated: 2024/10/20 17:43:24 by beyildiz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,5 +91,6 @@ int		redir_cont2(char *input, int i, char c);
 int		quote_cont(char *input);
 int		is_meta(char *input, int i);
 int		is_space(char c);
+char	*find_env_val(char *key, char **env);
 
 #endif
