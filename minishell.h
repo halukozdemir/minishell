@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
+/*   By: halozdem <halozdem@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 13:38:02 by halozdem          #+#    #+#             */
-/*   Updated: 2024/10/20 19:05:18 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/10/21 01:47:47 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@
 #include <unistd.h>
 #include "lib/libft/libft.h"
 #include <stdbool.h>
+#include <fcntl.h>  // Dosya modları ve open() için gerekli
 
 typedef struct s_redir
 {
@@ -90,11 +91,24 @@ int		redir_cont2(char *input, int i, char c);
 int		quote_cont(char *input);
 int		is_meta(char *input, int i);
 int		is_space(char c);
-void	get_dollar(char *input, t_env *env);
+void	get_dollar(char **input, t_env *env);
 t_env	**lstadd_back2(t_env **lst, t_env *new);
 t_env	*envfunc2(char	**env);
 char	*funcval(char	*env, int start);
 char	*funckey(char	*env, int end);
 void	run_env(t_env *env2);
+void	check_quotes(char c, bool *sq, bool *dq);
+void	replace_dollar_with_value_or_remove(char **input, char *key,
+			char *value, int start, int end);
+char	*get_env_value(t_env *env, char *key);
+void	process_key(char **input_ptr, t_env *env, int *i);
+void	get_dollar(char **input_ptr, t_env *env);
+void handle_redirection(char *filename, int redir_type);
+void execute_pipe(char **cmd1, char **cmd2, char **env);
+void	execute_command(char **cmd, char **env);
+void	executor(char **cmds, char **env);
+int	contains_pipe(char **cmds);
+int	contains_redirection(char **cmds);
+
 
 #endif

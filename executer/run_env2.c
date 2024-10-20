@@ -3,87 +3,89 @@
 t_env	**lstadd_back2(t_env **lst, t_env *new)
 {
 	t_env	*temp;
-	t_env	*temp2;
 
 	temp = *lst;
 	if (!*lst)
 	{
 		*lst = new;
-		new->prev = *lst;
+		new->prev = NULL; // İlk eleman olduğu için prev NULL olmalı
 	}
 	else
 	{
 		while (temp->next)
-		{
-			temp2 = temp;
 			temp = temp->next;
-		}
 		temp->next = new;
-		new->prev = temp2;
+		new->prev = temp; // Son düğüm temp olduğu için new->prev = temp olmalı
 	}
 	return (lst);
 }
 
-char	*funckey(char	*env, int end)
+char	*funckey(char *env, int end)
 {
 	char	*key;
-	key = (char *)malloc(end + 1);
-	key[end] = '\0';
-	while (end >= 0)
+	int		i;
+
+	key = (char *)malloc(end + 2); // Null karakter için ek 1 yer ayrılmalı
+	if (!key)
+		return (NULL);
+	i = 0;
+	while (i <= end)
 	{
-		key[end] = env[end];
-		end--;
+		key[i] = env[i];
+		i++;
 	}
+	key[i] = '\0'; // Stringin sonuna null karakteri eklenmeli
 	return (key);
 }
 
-char	*funcval(char	*env, int start)
+char	*funcval(char *env, int start)
 {
 	char	*val;
-	int		end;
 	int		i;
+	int		len;
 
 	i = 0;
-	end = start;
-	while (env[end])
-	{
-		end++;
-	}
-	end--;
-	val = (char *)malloc(end - start+ 1);
+	len = 0;
+	while (env[start + len]) // Değerin uzunluğunu hesapla
+		len++;
+	val = (char *)malloc(len + 1); // Null karakter için ek yer
+	if (!val)
+		return (NULL);
 	while (env[start])
 	{
 		val[i] = env[start];
 		start++;
 		i++;
 	}
-	val[start] = '\0';
+	val[i] = '\0'; // String sonlandırıcıyı doğru yerde ekle
 	return (val);
 }
 
-t_env	*envfunc2(char	**env)
+t_env	*envfunc2(char **env)
 {
 	int		i;
 	int		end;
 	t_env	*new;
 	t_env	*lst;
 
+	lst = NULL; // Liste başlangıçta boş olmalı
 	i = 0;
-	lst = (t_env *)malloc(sizeof(t_env));
 	while (env[i])
 	{
 		end = 0;
-		while ((env[i][end] && env[i][end] != '='))
-		{
+		while (env[i][end] && env[i][end] != '=') // Anahtarın sonuna kadar ilerle
 			end++;
-		}
 		new = (t_env *)malloc(sizeof(t_env));
 		if (!new)
-			return (0);
+			return (NULL);
 		new->next = NULL;
-		new->key = funckey(env[i], end - 1);
-		new->value = funcval(env[i], end + 1);
-		lstadd_back2(&lst, new);
+		new->key = funckey(env[i], end - 1); // '=' işaretinden önceki kısım anahtar
+		if (!new->key)
+			return (NULL);
+		new->value = funcval(env[i], end + 1); // '=' işaretinden sonrası değer
+		if (!new->value)
+			return (NULL);
+		lstadd_back2(&lst, new); // Yeni düğümü listeye ekle
 		i++;
 	}
 	return (lst);
