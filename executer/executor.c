@@ -1,245 +1,96 @@
 #include "../minishell.h"
 
-#include <string.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <stdio.h>
-
-#include <fcntl.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-char	*find_command_path(char *command, char **env)
+char	**expand_args(char **args, int old_size, int new_size)
 {
-	char	*path_env;
-	char	**paths;
-	char	*command_path;
+	char	**new_args;
 	int		i;
-	size_t	path_len;
 
-	// PATH çevre değişkenini bul
-	path_env = getenv("PATH");
-	if (!path_env)
+	new_args = (char **)malloc(sizeof(char *) * new_size);
+	if (!new_args)
 		return (NULL);
-
-	// PATH'i ':' ile ayır ve her bir dizini kontrol et
-	paths = ft_split(path_env, ':'); // ft_split, PATH'i ayırır
+	// Eski diziyi yeni diziye kopyala
 	i = 0;
-	while (paths[i])
+	while (i < old_size)
 	{
-		// command_path için yeterli alan ayır
-		path_len = strlen(paths[i]) + strlen(command) + 2;
-		command_path = malloc(path_len);
-		if (!command_path)
-			return (NULL);
-
-		// paths[i]'yi ve komutun adını birleştiriyoruz
-		ft_strlcpy(command_path, paths[i], path_len);
-		ft_strlcat(command_path, "/", path_len);
-		ft_strlcat(command_path, command, path_len);
-
-		if (access(command_path, X_OK) == 0) // Komutun çalıştırılabilir olup olmadığını kontrol et
-		{
-			free(paths);
-			return (command_path); // Komut bulundu
-		}
-		free(command_path);
+		new_args[i] = args[i]; // Elemanları kopyala
 		i++;
 	}
-	free(paths);
-	return (NULL); // Komut bulunamadıysa
+	free(args);        // Eski diziyi serbest bırak (çünkü realloc yok)
+	return (new_args); // Genişletilmiş diziyi geri döndür
 }
-
-void handle_redirection(char *filename, int redir_type)
+t_command *create_command(char **tokens)
 {
-    int filefd;
+    t_command   *cmd;
+    int         i;
+    int         arg_size;  // args dizisinin başlangıç boyutu
+    int         arg_count; // Eklenen argüman sayısı
 
-    if (redir_type == 1) // ">" out redirection
-        filefd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-    else if (redir_type == 2) // ">>" append redirection
-        filefd = open(filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
-    else if (redir_type == 3) // "<" in redirection
-        filefd = open(filename, O_RDONLY);
+    cmd = (t_command *)malloc(sizeof(t_command));
+    if (!cmd)
+        return (NULL);
 
-    if (filefd < 0)
+    arg_size = 2; // Başlangıçta 2 elemanlık yer ayır
+    cmd->args = (char **)malloc(sizeof(char *) * arg_size);
+    if (!cmd->args)
+        return (NULL);
+
+    arg_count = 0; // Başlangıçta hiç argüman yok
+    cmd->input_redirect = NULL;
+    cmd->output_redirect = NULL;
+    cmd->is_pipe = false;
+    cmd->append_mode = false;
+    cmd->next = NULL;
+
+    i = 0;
+    while (tokens[i])
     {
-        perror("open");
-        exit(1);
+        // Belleği genişletme gereksinimi
+        if (arg_count >= arg_size)
+        {
+            arg_size *= 2;
+            char **new_args = (char **)malloc(sizeof(char *) * arg_size);
+            if (!new_args)
+                return NULL;
+
+            // Mevcut argümanları yeni dizisine kopyala
+            int j = 0;
+            while (j < arg_count)
+            {
+                new_args[j] = cmd->args[j];
+                j++;
+            }
+            free(cmd->args); // Eski belleği serbest bırak
+            cmd->args = new_args;
+        }
+
+        // Bellek tahsis et ve string'i manuel kopyala
+        int len = ft_strlen(tokens[i]);
+        printf("Token[%d]: %s (Length: %d)\n", i, tokens[i], len); // Debugging
+
+        // Eğer tokens[i] boş değilse
+        if (len > 0)
+        {
+            cmd->args[arg_count] = (char *)malloc(len + 1);  // +1, null terminatör için
+            if (!cmd->args[arg_count])
+                return NULL; // Bellek ayırılamazsa, geri dön
+
+            // String kopyala
+            ft_memcpy(cmd->args[arg_count], tokens[i], len);
+            cmd->args[arg_count][len] = '\0'; // Null terminatör ekle
+
+            printf("args[%d]: %s (from tokens[%d])\n", arg_count, cmd->args[arg_count], i); // Debugging
+        }
+        else
+        {
+            printf("Skipping empty token for args[%d]\n", arg_count);  // Eğer token boşsa yazdır
+        }
+
+        arg_count++;
+        i++;
     }
 
-    // stdout'u veya stdin'i yönlendir
-    if (redir_type == 1 || redir_type == 2)
-        dup2(filefd, STDOUT_FILENO);
-    else if (redir_type == 3)
-        dup2(filefd, STDIN_FILENO);
+    // args dizisinin sonuna NULL ekle
+    cmd->args[arg_count] = NULL;
 
-    close(filefd);
-}
-void	execute_pipe(char **cmd1, char **cmd2, char **env)
-{
-	int		pipefd[2];
-	pid_t	pid1, pid2;
-	char	*command_path1;
-	char	*command_path2;
-
-	// Pipe oluştur
-	if (pipe(pipefd) == -1)
-	{
-		perror("pipe");
-		exit(1);
-	}
-
-	// İlk komut için tam yolunu bul
-	command_path1 = find_command_path(cmd1[0], env);
-	if (!command_path1)
-	{
-		printf("%s: command not found\n", cmd1[0]);
-		return;
-	}
-
-	// İkinci komut için tam yolunu bul
-	command_path2 = find_command_path(cmd2[0], env);
-	if (!command_path2)
-	{
-		printf("%s: command not found\n", cmd2[0]);
-		return;
-	}
-
-	// İlk child process: cmd1 (örneğin ls)
-	pid1 = fork();
-	if (pid1 == -1)
-	{
-		perror("fork");
-		exit(1);
-	}
-
-	if (pid1 == 0) // Child process 1
-	{
-		close(pipefd[0]); // Pipe'ın okuma ucunu kapat
-		dup2(pipefd[1], STDOUT_FILENO); // stdout'u pipe'a yönlendir
-		close(pipefd[1]); // Pipe'ın yazma ucunu kapat
-		execve(command_path1, cmd1, env); // Komutu çalıştır (örn: /bin/ls)
-		perror("execve");
-		exit(1);
-	}
-
-	// İkinci child process: cmd2 (örneğin grep)
-	pid2 = fork();
-	if (pid2 == -1)
-	{
-		perror("fork");
-		exit(1);
-	}
-
-	if (pid2 == 0) // Child process 2
-	{
-		close(pipefd[1]); // Pipe'ın yazma ucunu kapat
-		dup2(pipefd[0], STDIN_FILENO); // stdin'i pipe'dan al
-		close(pipefd[0]); // Pipe'ın okuma ucunu kapat
-		execve(command_path2, cmd2, env); // Komutu çalıştır (örn: /bin/grep)
-		perror("execve");
-		exit(1);
-	}
-
-	// Parent process: Pipe dosya tanımlayıcılarını kapat ve child'ları bekle
-	close(pipefd[0]);
-	close(pipefd[1]);
-	waitpid(pid1, NULL, 0); // İlk child'ı bekle
-	waitpid(pid2, NULL, 0); // İkinci child'ı bekle
-
-	free(command_path1);
-	free(command_path2);
-}
-
-void	execute_command(char **cmd, char **env)
-{
-	pid_t	pid;
-	char	*command_path;
-
-	// Komutun tam yolunu bul
-	command_path = find_command_path(cmd[0], env);
-	if (!command_path)
-	{
-		printf("%s: command not found\n", cmd[0]);
-		return;
-	}
-
-	pid = fork();
-	if (pid == -1)
-	{
-		perror("fork");
-		exit(1);
-	}
-	if (pid == 0) // Child process
-	{
-		// execve ile komutu çalıştır
-		execve(command_path, cmd, env);
-		perror("execve");
-		exit(1);
-	}
-
-	// Parent process, child'ı bekler
-	waitpid(pid, NULL, 0);
-	free(command_path); // Bellekte ayrılan dosya yolunu temizle
-}
-
-void executor(char **cmds, char **env)
-{
-    // Eğer pipe varsa
-    if (contains_pipe(cmds))
-    {
-        // cmds'yi iki komuta böl: "ls" ve "grep minishell"
-        char *cmd1[] = {cmds[0], NULL};
-        char *cmd2[] = {cmds[2], cmds[3], NULL};
-
-        // Pipe işlemi
-        execute_pipe(cmd1, cmd2, env);
-    }
-    // Eğer redirection varsa
-    else if (contains_redirection(cmds))
-    {
-        // Redirection tipi ve dosya adı
-        int redir_type = 1; // Örnek olarak out redirection (">")
-        handle_redirection(cmds[1], redir_type);
-
-        // Komutu çalıştır
-        execute_command(cmds, env);
-    }
-    // Normal komut
-    else
-    {
-        // Normal komutları çalıştır
-        execute_command(cmds, env);
-    }
-}
-
-
-int	contains_pipe(char **cmds)
-{
-	int i = 0;
-
-	while (cmds[i])
-	{
-		if (ft_strncmp(cmds[i], "|", 1) == 0)
-			return (1); // Pipe buldu
-		i++;
-	}
-	return (0); // Pipe yok
-}
-
-int	contains_redirection(char **cmds)
-{
-	int i = 0;
-
-	while (cmds[i])
-	{
-		if ((ft_strncmp(cmds[i], ">", 1) == 0 && ft_strlen(cmds[i]) == 1) ||
-			(ft_strncmp(cmds[i], ">>", 2) == 0 && ft_strlen(cmds[i]) == 2) ||
-			(ft_strncmp(cmds[i], "<", 1) == 0 && ft_strlen(cmds[i]) == 1))
-			return (1); // Redirection bulundu
-		i++;
-	}
-	return (0); // Redirection yok
+    return cmd;
 }

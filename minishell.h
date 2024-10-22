@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: halozdem <halozdem@student.42.fr>          +#+  +:+       +#+        */
+/*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 13:38:02 by halozdem          #+#    #+#             */
-/*   Updated: 2024/10/21 01:47:47 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/10/22 14:53:49 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,37 +22,22 @@
 #include <stdbool.h>
 #include <fcntl.h>  // Dosya modları ve open() için gerekli
 
-typedef struct s_redir
+typedef struct s_redirection
 {
-	//int		type;
-	char	*file;
-	int		fd;
-}  t_redir;
+    char    *filename;      // Yönlendirilecek dosyanın adı veya heredoc delimiter
+    int     type;            // Yönlendirme türü: 0=<, 1=>, 2=>>, 3=<< (heredoc)
+    char    *delimiter;     // Sadece heredoc için delimiter
+} t_redirection;
 
-typedef struct s_arg
+typedef struct s_command
 {
-	char	*content;
-	char	*next;
-}	t_arg;
-
-typedef struct s_execcmd
-{
-	int		out_file;
-	int		in_file;
-	t_arg	*args;
-	t_arg	*redirs;
-}	t_execcmd;
-
-typedef	struct	s_cmd
-{
-	int		index;
-	int		dquote_count;
-	int		squote_count;
-	bool	dquote;
-	bool	squote;
-	char	*line;
-	struct	s_env	*t_env;
-}	t_cmd;
+    char                **args;        // Komut ve argümanları tutan array
+    t_redirection       *input_redirect;   // Giriş yönlendirmesi (örneğin '< input.txt')
+    t_redirection       *output_redirect;  // Çıkış yönlendirmesi (örneğin '> output.txt' veya '>> output.txt')
+    bool                append_mode;   // Output dosyası ekleme modunda mı (örneğin '>>')
+    bool                is_pipe;       // Pipe kullanımı var mı (örneğin '|')
+    struct s_command    *next;         // Bir sonraki komut (pipe için)
+} t_command;
 
 typedef struct s_env
 {
@@ -62,21 +47,7 @@ typedef struct s_env
 	struct s_env		*prev;
 }	t_env;
 
-//yeni structlarım
 
-typedef	struct s_args
-{
-	char	*str;
-}	t_args;
-
-typedef struct s_command
-{
-	char			*str;
-	t_args			*args;
-	struct s_list	*next;
-}	t_command;
-
-void	init_struct(t_command *cmd);
 t_env	*new_node(t_env **lst, char *env, int end, int i);
 char	**get_token(char *input);
 char	**split_words(char *input, char **str, unsigned int word_count);
@@ -99,16 +70,12 @@ char	*funckey(char	*env, int end);
 void	run_env(t_env *env2);
 void	check_quotes(char c, bool *sq, bool *dq);
 void	replace_dollar_with_value_or_remove(char **input, char *key,
-			char *value, int start, int end);
+			char *value, int start, int end, bool needs_quotes);
 char	*get_env_value(t_env *env, char *key);
 void	process_key(char **input_ptr, t_env *env, int *i);
 void	get_dollar(char **input_ptr, t_env *env);
 void handle_redirection(char *filename, int redir_type);
-void execute_pipe(char **cmd1, char **cmd2, char **env);
-void	execute_command(char **cmd, char **env);
-void	executor(char **cmds, char **env);
-int	contains_pipe(char **cmds);
-int	contains_redirection(char **cmds);
+t_command *create_command(char **tokens);
 
 
 #endif
