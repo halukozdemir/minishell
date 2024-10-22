@@ -21,76 +21,37 @@ char	**expand_args(char **args, int old_size, int new_size)
 t_command *create_command(char **tokens)
 {
     t_command   *cmd;
+    int         arg_count;
     int         i;
-    int         arg_size;  // args dizisinin başlangıç boyutu
-    int         arg_count; // Eklenen argüman sayısı
 
     cmd = (t_command *)malloc(sizeof(t_command));
     if (!cmd)
         return (NULL);
 
-    arg_size = 2; // Başlangıçta 2 elemanlık yer ayır
-    cmd->args = (char **)malloc(sizeof(char *) * arg_size);
+    // args için başlangıçta 3 elemanlık bir yer ayırıyoruz
+    cmd->args = (char **)malloc(sizeof(char *) * 3);
     if (!cmd->args)
         return (NULL);
 
-    arg_count = 0; // Başlangıçta hiç argüman yok
+    // Input ve output redirect ve diğer yapıları sıfırlıyoruz
     cmd->input_redirect = NULL;
     cmd->output_redirect = NULL;
     cmd->is_pipe = false;
     cmd->append_mode = false;
     cmd->next = NULL;
 
+    arg_count = 0;
     i = 0;
-    while (tokens[i])
+    // İlk argümanı manuel olarak işliyoruz
+    while (tokens[arg_count])
     {
-        // Belleği genişletme gereksinimi
-        if (arg_count >= arg_size)
-        {
-            arg_size *= 2;
-            char **new_args = (char **)malloc(sizeof(char *) * arg_size);
-            if (!new_args)
-                return NULL;
-
-            // Mevcut argümanları yeni dizisine kopyala
-            int j = 0;
-            while (j < arg_count)
-            {
-                new_args[j] = cmd->args[j];
-                j++;
-            }
-            free(cmd->args); // Eski belleği serbest bırak
-            cmd->args = new_args;
-        }
-
-        // Bellek tahsis et ve string'i manuel kopyala
-        int len = ft_strlen(tokens[i]);
-        printf("Token[%d]: %s (Length: %d)\n", i, tokens[i], len); // Debugging
-
-        // Eğer tokens[i] boş değilse
-        if (len > 0)
-        {
-            cmd->args[arg_count] = (char *)malloc(len + 1);  // +1, null terminatör için
-            if (!cmd->args[arg_count])
-                return NULL; // Bellek ayırılamazsa, geri dön
-
-            // String kopyala
-            ft_memcpy(cmd->args[arg_count], tokens[i], len);
-            cmd->args[arg_count][len] = '\0'; // Null terminatör ekle
-
-            printf("args[%d]: %s (from tokens[%d])\n", arg_count, cmd->args[arg_count], i); // Debugging
-        }
-        else
-        {
-            printf("Skipping empty token for args[%d]\n", arg_count);  // Eğer token boşsa yazdır
-        }
-
+        cmd->args[arg_count] = ft_strdup(tokens[arg_count]);
+        printf("args[%d]: %s\n", arg_count, cmd->args[arg_count]);
         arg_count++;
-        i++;
     }
-
-    // args dizisinin sonuna NULL ekle
+    // args dizisinin sonuna NULL ekliyoruz
     cmd->args[arg_count] = NULL;
+    printf("Added NULL to args[%d]\n", arg_count);  // Debugging
 
     return cmd;
 }

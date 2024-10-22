@@ -14,37 +14,32 @@ void free_command_list(t_command *cmd)
         {
             while (cmd->args[i])
             {
-                printf("Freeing args[%d]: %s\n", i, cmd->args[i]);  // Serbest bırakmadan önce yazdır
-                free(cmd->args[i]);
+                if (cmd->args[i])  // Serbest bırakmadan önce boş olup olmadığını kontrol et
+                {
+                    printf("Freeing args[%d]: %s\n", i, cmd->args[i]);
+                    free(cmd->args[i]);
+                }
                 i++;
             }
-            free(cmd->args); // Argüman dizisini serbest bırak
+            free(cmd->args);
         }
 
-        // Input redirect'i serbest bırak
+        // Input redirect ve output redirect işlemleri (varsa)
         if (cmd->input_redirect)
         {
-            if (cmd->input_redirect->filename) // Dosya ismi gerçekten ayrılmış mı
-            {
-                printf("Freeing input redirect: %s\n", cmd->input_redirect->filename);
+            if (cmd->input_redirect->filename)
                 free(cmd->input_redirect->filename);
-            }
             free(cmd->input_redirect);
         }
 
-        // Output redirect'i serbest bırak
         if (cmd->output_redirect)
         {
-            if (cmd->output_redirect->filename) // Dosya ismi gerçekten ayrılmış mı
-            {
-                printf("Freeing output redirect: %s\n", cmd->output_redirect->filename);
+            if (cmd->output_redirect->filename)
                 free(cmd->output_redirect->filename);
-            }
             free(cmd->output_redirect);
         }
 
         // Komut yapısını serbest bırak
-        printf("Freeing command structure\n");
         free(cmd);
         cmd = tmp;
     }
