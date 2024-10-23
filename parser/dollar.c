@@ -109,7 +109,7 @@ void    get_dollar(char **input_ptr, t_env *env)
 
     // 1. Toplam uzunluğu hesapla
     while (input[i])
-    {
+    {//$HOME*GJ
         check_quotes(input[i], &in_single_quotes, &in_double_quotes); // Tırnak durumlarını kontrol et
         if (input[i] == '$' && !in_single_quotes) // Sadece tek tırnak içinde değilsek genişletme yap
         {
@@ -131,7 +131,6 @@ void    get_dollar(char **input_ptr, t_env *env)
             i++;
         }
     }
-
     // 2. Bellekte yeni string için yer ayır
     new_input = (char *)malloc(total_len + 1);
     if (!new_input)
@@ -153,12 +152,12 @@ void    get_dollar(char **input_ptr, t_env *env)
 
             char *key = ft_substr(input, i, j - i); // Değişken ismi al
             char *value = get_env_value(env, key); // Değerini bul
+            free(key);
             if (value)
             {
                 ft_strlcpy(new_input + len, value, ft_strlen(value) + 1); // Değeri ekle
                 len += ft_strlen(value);  // Değer uzunluğunu güncelle
             }
-            free(key);
             i = j;
         }
         else

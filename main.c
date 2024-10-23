@@ -99,21 +99,22 @@ int main(int argc, char **argv, char **env)
 
         // Syntax kontrolü yap
         has_error = false;
-        if (!syntax_cont(input, &has_error) && has_error)
-        {
-            printf("Syntax error.\n");
-            free(input);
-            continue;
-        }
-
+        // if (!syntax_cont(input, &has_error) && has_error)
+        // {
+        //     printf("Syntax error.\n");
+        //     free(input);
+        //     continue;
+        // }
+		get_dollar(&input, env_list);
+		printf("yeni str: \"%s\"\n", input);
         // Girdiyi token'lara ayır (parser işlemi)
         tokens = get_token(input);
 
         // get_token'dan dönen tokenları struct yapısına dönüştür
-        cmd_list = create_command(tokens); // Komutları struct'a dönüştürüyoruz
+        // cmd_list = create_command(tokens); // Komutları struct'a dönüştürüyoruz
 
         // Komutları yazdırarak test ediyoruz
-        print_command(cmd_list);
+        // print_command(cmd_list);
 
         // Free işlemleri (tokens ve cmd_list)
         free(input); // Kullanıcı girdisini serbest bırak
