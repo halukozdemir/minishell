@@ -7,6 +7,7 @@ void	check_quotes(char c, bool *sq, bool *dq)
 	if (c == '\"' && !*sq)
 		*dq = !*dq;
 }
+
 void	replace_dollar_with_value_or_remove(char **input, char *key,
 			char *value, int start, int end, bool needs_quotes)
 {
@@ -58,11 +59,18 @@ bool contains_special_operators(char *key)
     return (false);
 }
 
-void	process_key(char **input_ptr, t_env *env, int *i)
+void	process_key(char **input_ptr, t_env *env, int *i, bool in_single_quotes)
 {
 	int		j;
 	char	*key;
 	char	*value;
+
+	// Eğer tek tırnak içindeysek genişletme yapma
+	if (in_single_quotes)
+	{
+		(*i)++;
+		return;
+	}
 
 	// $ işaretinden sonra değişkeni al
 	j = *i;
@@ -86,6 +94,7 @@ void	process_key(char **input_ptr, t_env *env, int *i)
 
 	free(key);
 }
+
 void    get_dollar(char **input_ptr, t_env *env)
 {
     char *input;
@@ -93,13 +102,16 @@ void    get_dollar(char **input_ptr, t_env *env)
     int i = 0, j;
     int len = 0;
     int total_len = 0;
+    bool in_single_quotes = false; // Tek tırnak içinde olup olmadığımızı izlemek için
+    bool in_double_quotes = false; // Çift tırnak içinde olup olmadığımızı izlemek için
 
     input = *input_ptr;
 
     // 1. Toplam uzunluğu hesapla
     while (input[i])
     {
-        if (input[i] == '$')
+        check_quotes(input[i], &in_single_quotes, &in_double_quotes); // Tırnak durumlarını kontrol et
+        if (input[i] == '$' && !in_single_quotes) // Sadece tek tırnak içinde değilsek genişletme yap
         {
             i++;
             j = i;
@@ -131,7 +143,8 @@ void    get_dollar(char **input_ptr, t_env *env)
     // 3. Yeni stringi oluştur
     while (input[i])
     {
-        if (input[i] == '$')
+        check_quotes(input[i], &in_single_quotes, &in_double_quotes); // Tırnak durumlarını kontrol et
+        if (input[i] == '$' && !in_single_quotes) // Sadece tek tırnak içinde değilsek genişletme yap
         {
             i++;
             j = i;

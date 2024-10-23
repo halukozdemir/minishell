@@ -6,7 +6,7 @@
 /*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 13:38:02 by halozdem          #+#    #+#             */
-/*   Updated: 2024/10/22 14:53:49 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/10/23 17:10:26 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,8 +71,7 @@ void	run_env(t_env *env2);
 void	check_quotes(char c, bool *sq, bool *dq);
 void	replace_dollar_with_value_or_remove(char **input, char *key,
 			char *value, int start, int end, bool needs_quotes);
-char	*get_env_value(t_env *env, char *key);
-void	process_key(char **input_ptr, t_env *env, int *i);
+char	*get_env_value(t_env *env, char *key);void	process_key(char **input_ptr, t_env *env, int *i, bool in_single_quotes);
 void	get_dollar(char **input_ptr, t_env *env);
 void handle_redirection(char *filename, int redir_type);
 t_command *create_command(char **tokens);
