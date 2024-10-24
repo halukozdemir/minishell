@@ -6,7 +6,7 @@
 /*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 13:38:02 by halozdem          #+#    #+#             */
-/*   Updated: 2024/10/23 17:10:26 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/10/24 19:14:43 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,22 +22,65 @@
 #include <stdbool.h>
 #include <fcntl.h>  // Dosya modları ve open() için gerekli
 
-typedef struct s_redirection
-{
-    char    *filename;      // Yönlendirilecek dosyanın adı veya heredoc delimiter
-    int     type;            // Yönlendirme türü: 0=<, 1=>, 2=>>, 3=<< (heredoc)
-    char    *delimiter;     // Sadece heredoc için delimiter
-} t_redirection;
+// typedef struct s_redirection
+// {
+//     char    *filename;      // Yönlendirilecek dosyanın adı veya heredoc delimiter
+//     int     type;            // Yönlendirme türü: 0=<, 1=>, 2=>>, 3=<< (heredoc)
+//     char    *delimiter;     // Sadece heredoc için delimiter
+// } t_redirection;
 
-typedef struct s_command
+// typedef struct s_command
+// {
+//     char                **args;        // Komut ve argümanları tutan array
+//     t_redirection       *input_redirect;   // Giriş yönlendirmesi (örneğin '< input.txt')
+//     t_redirection       *output_redirect;  // Çıkış yönlendirmesi (örneğin '> output.txt' veya '>> output.txt')
+//     bool                append_mode;   // Output dosyası ekleme modunda mı (örneğin '>>')
+//     bool                is_pipe;       // Pipe kullanımı var mı (örneğin '|')
+//     struct s_command    *next;         // Bir sonraki komut (pipe için)
+// } t_command;
+
+typedef struct s_job t_job;
+typedef struct s_jobs t_jobs;
+typedef struct s_redir t_redir;
+
+typedef enum e_type
 {
-    char                **args;        // Komut ve argümanları tutan array
-    t_redirection       *input_redirect;   // Giriş yönlendirmesi (örneğin '< input.txt')
-    t_redirection       *output_redirect;  // Çıkış yönlendirmesi (örneğin '> output.txt' veya '>> output.txt')
-    bool                append_mode;   // Output dosyası ekleme modunda mı (örneğin '>>')
-    bool                is_pipe;       // Pipe kullanımı var mı (örneğin '|')
-    struct s_command    *next;         // Bir sonraki komut (pipe için)
-} t_command;
+    NONE,
+    PIPE,
+    EXEC
+}   t_type;
+
+struct s_redir
+{
+    int     in_file;
+    int     out_file;
+    char    **files;
+    char    *eof;
+    char    *args;
+};
+
+struct s_job
+{
+    char    *cmd;
+    char    **args;
+    t_redir *redir;
+    t_job   *next_job;
+};
+
+struct s_jobs
+{
+    t_type  type;
+    t_job   *job_list;
+    int     len;
+    int     pipe[2];
+};
+
+typedef struct s_mshell
+{
+    t_jobs  *jobs;
+    char    **success_arr;
+    char    **env
+}   t_mshell;
 
 typedef struct s_env
 {

@@ -1,73 +1,5 @@
 #include "minishell.h"
 
-void free_command_list(t_command *cmd)
-{
-    t_command *tmp;
-
-    while (cmd)
-    {
-        tmp = cmd->next;
-
-        // Argümanları serbest bırak
-        int i = 0;
-        if (cmd->args)
-        {
-            while (cmd->args[i])
-            {
-                if (cmd->args[i])  // Serbest bırakmadan önce boş olup olmadığını kontrol et
-                {
-                    printf("Freeing args[%d]: %s\n", i, cmd->args[i]);
-                    free(cmd->args[i]);
-                }
-                i++;
-            }
-            free(cmd->args);
-        }
-
-        // Input redirect ve output redirect işlemleri (varsa)
-        if (cmd->input_redirect)
-        {
-            if (cmd->input_redirect->filename)
-                free(cmd->input_redirect->filename);
-            free(cmd->input_redirect);
-        }
-
-        if (cmd->output_redirect)
-        {
-            if (cmd->output_redirect->filename)
-                free(cmd->output_redirect->filename);
-            free(cmd->output_redirect);
-        }
-
-        // Komut yapısını serbest bırak
-        free(cmd);
-        cmd = tmp;
-    }
-}
-
-void print_command(t_command *cmd)
-{
-    int i = 0;
-    printf("Command and arguments:\n");
-    while (cmd->args && cmd->args[i])
-    {
-        printf("arg[%d]: %s\n", i, cmd->args[i]);
-        i++;
-    }
-
-    if (cmd->input_redirect)
-        printf("Input redirect: %s\n", cmd->input_redirect->filename);
-    else
-        printf("Input redirect: None\n");
-
-    if (cmd->output_redirect)
-        printf("Output redirect: %s\n", cmd->output_redirect->filename);
-    else
-        printf("Output redirect: None\n");
-
-    printf("This command is %spiped.\n", cmd->is_pipe ? "" : "not ");
-}
-
 int main(int argc, char **argv, char **env)
 {
     char *input;
@@ -110,11 +42,6 @@ int main(int argc, char **argv, char **env)
         // Girdiyi token'lara ayır (parser işlemi)
         tokens = get_token(input);
 
-        // get_token'dan dönen tokenları struct yapısına dönüştür
-        // cmd_list = create_command(tokens); // Komutları struct'a dönüştürüyoruz
-
-        // Komutları yazdırarak test ediyoruz
-        // print_command(cmd_list);
 
         // Free işlemleri (tokens ve cmd_list)
         free(input); // Kullanıcı girdisini serbest bırak
@@ -134,3 +61,19 @@ int main(int argc, char **argv, char **env)
 
     return 0;
 }
+
+// cat  "ljfj f"ahg < txt | wc -l |
+/*
+cmd: cat
+args[0] : cat
+args[1] :"ljfj f"
+args[2] : ahg
+
+next;
+
+cmd: wc
+args[0] : wc
+args[1] : -l
+
+
+*/
