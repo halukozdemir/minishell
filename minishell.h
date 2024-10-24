@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
+/*   By: halozdem <halozdem@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 13:38:02 by halozdem          #+#    #+#             */
-/*   Updated: 2024/10/24 19:14:43 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/10/25 00:37:03 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,13 +75,6 @@ struct s_jobs
     int     pipe[2];
 };
 
-typedef struct s_mshell
-{
-    t_jobs  *jobs;
-    char    **success_arr;
-    char    **env
-}   t_mshell;
-
 typedef struct s_env
 {
 	char				*key;
@@ -89,6 +82,14 @@ typedef struct s_env
 	struct s_env		*next;
 	struct s_env		*prev;
 }	t_env;
+typedef struct s_mshell
+{
+    t_jobs  *jobs;
+    char    **success_arr;
+    t_env   *env;  // t_env * olarak güncellendi
+}   t_mshell;
+
+
 
 
 t_env	*new_node(t_env **lst, char *env, int end, int i);
@@ -117,7 +118,7 @@ void	replace_dollar_with_value_or_remove(char **input, char *key,
 char	*get_env_value(t_env *env, char *key);void	process_key(char **input_ptr, t_env *env, int *i, bool in_single_quotes);
 void	get_dollar(char **input_ptr, t_env *env);
 void handle_redirection(char *filename, int redir_type);
-t_command *create_command(char **tokens);
+// t_command *create_command(char **tokens);
 
 
 #endif
