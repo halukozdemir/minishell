@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: halozdem <halozdem@student.42.fr>          +#+  +:+       +#+        */
+/*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 13:38:02 by halozdem          #+#    #+#             */
-/*   Updated: 2024/10/25 00:37:03 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/10/25 16:26:12 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@
 #include <unistd.h>
 #include "lib/libft/libft.h"
 #include <stdbool.h>
+#include <limits.h>
 #include <fcntl.h>  // Dosya modları ve open() için gerekli
 
 // typedef struct s_redirection
@@ -119,6 +120,13 @@ char	*get_env_value(t_env *env, char *key);void	process_key(char **input_ptr, t_
 void	get_dollar(char **input_ptr, t_env *env);
 void handle_redirection(char *filename, int redir_type);
 // t_command *create_command(char **tokens);
+void echo_builtin(char **args);
+void cd_builtin(char **args);
+void pwd_builtin();
+void export_builtin(char **args);
+void unset_builtin(char **args);
+void env_builtin(char **env);
+void exit_builtin();
 
 
 #endif

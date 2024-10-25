@@ -4,7 +4,6 @@
 
 void add_job_to_jobs(t_jobs *jobs, t_job *new_job)
 {
-    printf("Adding job to jobs list...\n");
     if (!jobs->job_list)
     {
         jobs->job_list = new_job;
@@ -17,7 +16,6 @@ void add_job_to_jobs(t_jobs *jobs, t_job *new_job)
         current->next_job = new_job;
     }
     jobs->len++;
-    printf("Job added. Current job list length: %d\n", jobs->len);
 }
 
 void fill_jobs_from_tokens(t_mshell *shell, char **tokens)
@@ -25,11 +23,9 @@ void fill_jobs_from_tokens(t_mshell *shell, char **tokens)
     int i = 0;
     t_job *current_job = NULL;
 
-    printf("Filling jobs from tokens...\n");
     shell->jobs = malloc(sizeof(t_jobs));
     if (!shell->jobs)
     {
-        printf("Memory allocation failed for jobs\n");
         return;
     }
 
@@ -41,7 +37,6 @@ void fill_jobs_from_tokens(t_mshell *shell, char **tokens)
 
     while (tokens[i])
     {
-        printf("Processing token: %s\n", tokens[i]);
         if (ft_strncmp(tokens[i], "|", 1) == 0)
         {
             shell->jobs->type = PIPE;
@@ -52,12 +47,10 @@ void fill_jobs_from_tokens(t_mshell *shell, char **tokens)
         current_job = malloc(sizeof(t_job));
         if (!current_job)
         {
-            printf("Memory allocation failed for current job\n");
             return;
         }
 
         current_job->cmd = ft_strdup(tokens[i++]);
-        printf("Command set: %s\n", current_job->cmd);
 
         int arg_count = 0;
         int arg_start = i;
@@ -71,7 +64,6 @@ void fill_jobs_from_tokens(t_mshell *shell, char **tokens)
         if (!current_job->args)
         {
             free(current_job);
-            printf("Memory allocation failed for arguments\n");
             return;
         }
 
@@ -80,7 +72,6 @@ void fill_jobs_from_tokens(t_mshell *shell, char **tokens)
         for (int k = arg_start; k < arg_start + arg_count; k++)
         {
             current_job->args[j++] = ft_strdup(tokens[k]);
-            printf("Argument added: %s\n", tokens[k]);
         }
         current_job->args[j] = NULL;
 
@@ -89,7 +80,6 @@ void fill_jobs_from_tokens(t_mshell *shell, char **tokens)
         {
             free(current_job->args);
             free(current_job);
-            printf("Memory allocation failed for redirection\n");
             return;
         }
 
@@ -101,7 +91,6 @@ void fill_jobs_from_tokens(t_mshell *shell, char **tokens)
 
         while (tokens[i] && (ft_strncmp(tokens[i], ">", 1) == 0 || ft_strncmp(tokens[i], "<", 1) == 0 || ft_strncmp(tokens[i], ">>", 2) == 0 || ft_strncmp(tokens[i], "<<", 2) == 0))
         {
-            printf("Processing redirection: %s\n", tokens[i]);
             if (ft_strncmp(tokens[i], ">", 1) == 0)
             {
                 i++;
@@ -116,7 +105,6 @@ void fill_jobs_from_tokens(t_mshell *shell, char **tokens)
                         free(current_job);
                         return;
                     }
-                    printf("Output redirection set to file: %s\n", tokens[i]);
                 }
             }
             else if (ft_strncmp(tokens[i], ">>", 2) == 0)
@@ -133,7 +121,6 @@ void fill_jobs_from_tokens(t_mshell *shell, char **tokens)
                         free(current_job);
                         return;
                     }
-                    printf("Appending output redirection to file: %s\n", tokens[i]);
                 }
             }
             else if (ft_strncmp(tokens[i], "<", 1) == 0)
@@ -150,7 +137,6 @@ void fill_jobs_from_tokens(t_mshell *shell, char **tokens)
                         free(current_job);
                         return;
                     }
-                    printf("Input redirection set to file: %s\n", tokens[i]);
                 }
             }
             else if (ft_strncmp(tokens[i], "<<", 2) == 0)
@@ -159,7 +145,6 @@ void fill_jobs_from_tokens(t_mshell *shell, char **tokens)
                 if (tokens[i])
                 {
                     current_job->redir->eof = ft_strdup(tokens[i]);
-                    printf("Heredoc EOF set: %s\n", tokens[i]);
                 }
             }
             i++;
@@ -176,10 +161,8 @@ void execute_jobs(t_jobs *jobs)
     int prev_pipe[2] = {-1, -1};
     int curr_pipe[2];
 
-    printf("Executing jobs...\n");
     while (current_job)
     {
-        printf("Executing command: %s\n", current_job->cmd);
         if (jobs->type == PIPE && current_job->next_job)
         {
             if (pipe(curr_pipe) == -1)
@@ -187,7 +170,6 @@ void execute_jobs(t_jobs *jobs)
                 perror("pipe error");
                 return;
             }
-            printf("Pipe created. Read end: %d, Write end: %d\n", curr_pipe[0], curr_pipe[1]);
         }
 
         pid_t pid = fork();
@@ -198,31 +180,26 @@ void execute_jobs(t_jobs *jobs)
         }
         else if (pid == 0)
         {
-            printf("Child process executing command: %s\n", current_job->cmd);
             if (current_job->redir->in_file != -1)
             {
                 dup2(current_job->redir->in_file, STDIN_FILENO);
                 close(current_job->redir->in_file);
-                printf("Input redirected\n");
             }
             if (current_job->redir->out_file != -1)
             {
                 dup2(current_job->redir->out_file, STDOUT_FILENO);
                 close(current_job->redir->out_file);
-                printf("Output redirected\n");
             }
             if (prev_pipe[0] != -1)
             {
                 dup2(prev_pipe[0], STDIN_FILENO);
                 close(prev_pipe[0]);
-                printf("Input from previous pipe\n");
             }
             if (jobs->type == PIPE && current_job->next_job)
             {
                 close(curr_pipe[0]);
                 dup2(curr_pipe[1], STDOUT_FILENO);
                 close(curr_pipe[1]);
-                printf("Output to next pipe\n");
             }
 
             execvp(current_job->cmd, current_job->args);
@@ -231,7 +208,6 @@ void execute_jobs(t_jobs *jobs)
         }
         else
         {
-            printf("Parent process. Child PID: %d\n", pid);
             if (prev_pipe[0] != -1)
                 close(prev_pipe[0]);
             if (prev_pipe[1] != -1)
@@ -252,7 +228,6 @@ void execute_jobs(t_jobs *jobs)
     while (current_job)
     {
         wait(NULL);
-        printf("Child process finished for command: %s\n", current_job->cmd);
         current_job = current_job->next_job;
     }
 }
@@ -262,7 +237,6 @@ void free_jobs(t_jobs *jobs)
     t_job *current_job = jobs->job_list;
     t_job *next_job;
 
-    printf("Freeing jobs...\n");
     while (current_job)
     {
         next_job = current_job->next_job;
@@ -287,7 +261,6 @@ void free_jobs(t_jobs *jobs)
         current_job = next_job;
     }
     free(jobs);
-    printf("Jobs freed\n");
 }
 
 int main(int argc, char **argv, char **env)
@@ -299,27 +272,26 @@ int main(int argc, char **argv, char **env)
     (void)argv;
     if (argc != 1)
     {
-        printf("Argument error.\n");
         return 1;
     }
 
-    shell.env = envfunc2(env);
+    shell.env = env;
 
     while (1)
     {
         input = readline("minishell> ");
         if (!input)
         {
-            printf("EOF detected, exiting...\n");
             break;
         }
 
         add_history(input);
+        get_dollar(&input, shell.env);
         tokens = get_token(input);
-        printf("User input tokenized\n");
 
         fill_jobs_from_tokens(&shell, tokens);
-        execute_jobs(shell.jobs);
+//burada kaldım
+        execute_jobs(shell.jobs, &shell);
 
         free(input);
 
@@ -334,6 +306,5 @@ int main(int argc, char **argv, char **env)
         free_jobs(shell.jobs);
     }
 
-    printf("Shell exited successfully\n");
     return 0;
 }
