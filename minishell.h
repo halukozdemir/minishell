@@ -6,7 +6,7 @@
 /*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 13:38:02 by halozdem          #+#    #+#             */
-/*   Updated: 2024/10/25 16:26:12 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/10/26 16:12:47 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,13 +120,12 @@ char	*get_env_value(t_env *env, char *key);void	process_key(char **input_ptr, t_
 void	get_dollar(char **input_ptr, t_env *env);
 void handle_redirection(char *filename, int redir_type);
 // t_command *create_command(char **tokens);
-void echo_builtin(char **args);
-void cd_builtin(char **args);
-void pwd_builtin();
-void export_builtin(char **args);
-void unset_builtin(char **args);
-void env_builtin(char **env);
-void exit_builtin();
+void add_job_to_jobs(t_jobs *jobs, t_job *new_job);
+void fill_jobs_from_tokens(t_mshell *shell, char **tokens);
+void execute_jobs(t_jobs *jobs);
+void free_jobs(t_jobs *jobs);
+
+char    **env_to_array(t_env *lst);
 
 
 #endif
