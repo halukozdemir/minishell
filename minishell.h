@@ -6,7 +6,7 @@
 /*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 13:38:02 by halozdem          #+#    #+#             */
-/*   Updated: 2024/10/26 16:12:47 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/10/26 17:17:12 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -126,6 +126,14 @@ void execute_jobs(t_jobs *jobs);
 void free_jobs(t_jobs *jobs);
 
 char    **env_to_array(t_env *lst);
+
+void ft_echo(char **args);
+void ft_cd(char **args, char **new_env);
+void ft_pwd(void);
+void ft_export(char **args, t_env **env_list);
+void ft_unset(char **args, char ***new_env);
+void ft_env(char **new_env);
+void ft_exit(void);
 
 
 #endif

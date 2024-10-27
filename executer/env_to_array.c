@@ -26,7 +26,7 @@ char    **env_to_array(t_env *lst)
     temp = lst;
     while (temp)
     {
-        env_array[i] = (char *)malloc(strlen(temp->key) + strlen(temp->value) + 2); // '=' ve null karakteri için ek alan
+        env_array[i] = (char *)malloc(ft_strlen(temp->key) + ft_strlen(temp->value) + 2); // '=' ve null karakteri için ek alan
         if (!env_array[i])
         {
             // Hata durumunda, daha önce ayrılmış belleği temizle
@@ -35,9 +35,9 @@ char    **env_to_array(t_env *lst)
             free(env_array);
             return (NULL);
         }
-        strcpy(env_array[i], temp->key);
-        strcat(env_array[i], "=");
-        strcat(env_array[i], temp->value);
+        ft_strlcpy(env_array[i], temp->key, ft_strlen(temp->key) + 1);
+        ft_strlcat(env_array[i], "=", ft_strlen(temp->key) + 2);
+        ft_strlcat(env_array[i], temp->value, ft_strlen(temp->key) + ft_strlen(temp->value) + 2);
         i++;
         temp = temp->next;
     }
