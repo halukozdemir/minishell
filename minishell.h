@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
+/*   By: halozdem <halozdem@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 13:38:02 by halozdem          #+#    #+#             */
-/*   Updated: 2024/10/26 17:17:12 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/10/29 18:42:43 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,43 +39,6 @@
 //     bool                is_pipe;       // Pipe kullanımı var mı (örneğin '|')
 //     struct s_command    *next;         // Bir sonraki komut (pipe için)
 // } t_command;
-
-typedef struct s_job t_job;
-typedef struct s_jobs t_jobs;
-typedef struct s_redir t_redir;
-
-typedef enum e_type
-{
-    NONE,
-    PIPE,
-    EXEC
-}   t_type;
-
-struct s_redir
-{
-    int     in_file;
-    int     out_file;
-    char    **files;
-    char    *eof;
-    char    *args;
-};
-
-struct s_job
-{
-    char    *cmd;
-    char    **args;
-    t_redir *redir;
-    t_job   *next_job;
-};
-
-struct s_jobs
-{
-    t_type  type;
-    t_job   *job_list;
-    int     len;
-    int     pipe[2];
-};
-
 typedef struct s_env
 {
 	char				*key;
@@ -83,14 +46,49 @@ typedef struct s_env
 	struct s_env		*next;
 	struct s_env		*prev;
 }	t_env;
-typedef struct s_mshell
+
+typedef struct  s_cmd
 {
-    t_jobs  *jobs;
-    char    **success_arr;
-    t_env   *env;  // t_env * olarak güncellendi
-}   t_mshell;
+	char				**ncmd; // pipe'a göre bölünmüş inputu burda tutuyoruz.
+	int					pipe_count;
+	char				*cleaned; //executera gönderilecek double char pointer'ın tırnaklarının çıkartılmış hali
+	char				**sep_path;//env'deki PATH'ın : işaretine göre split'lenmiş hali
 
+	int					status;//$? için tutulan status
+	int					**fd;//pipe fonksiyonunda açılan fd'leri tutacak
+	char				**envp;//t_env'nin char **'a dönüştürülmüş hali
 
+	t_env		        *env;
+	t_env		        *exp;// export komutunda key'e atanmış herhangi bir value yoksa o keyi env'ye eklemez, exp structına ekler
+	struct s_executor	*executor;
+}t_cmd;
+
+typedef struct s_redirect
+{
+	int type; // 10: heredoc, 11: append, 12: input, 13: output
+	char				*filename;
+	struct s_redirect	*next;
+} t_redirection;
+
+typedef struct s_files
+{
+	int					fd_heredoc[2];//açılan dosyaların fd'lerini tutar
+	int					error;
+	int					fd_input;
+	int					fd_output;
+	char				*input;
+	char				*output;
+	char				*heredoc;
+}						t_files;
+
+typedef struct s_executor
+{
+	char				**argv;//execve'ye göndereceğimiz char **
+	pid_t				pid;//child process'lerde execve çalıştırmak için
+	t_files				*files;//redirection structı
+	struct s_executor	*next;//pipe varsa yeni bir düğüm olarak kullanılır
+	struct s_redirect	*redirect;//redirect'ın türünü ve adını tutan struct
+}						t_executor;
 
 
 t_env	*new_node(t_env **lst, char *env, int end, int i);
@@ -118,22 +116,5 @@ void	replace_dollar_with_value_or_remove(char **input, char *key,
 			char *value, int start, int end, bool needs_quotes);
 char	*get_env_value(t_env *env, char *key);void	process_key(char **input_ptr, t_env *env, int *i, bool in_single_quotes);
 void	get_dollar(char **input_ptr, t_env *env);
-void handle_redirection(char *filename, int redir_type);
-// t_command *create_command(char **tokens);
-void add_job_to_jobs(t_jobs *jobs, t_job *new_job);
-void fill_jobs_from_tokens(t_mshell *shell, char **tokens);
-void execute_jobs(t_jobs *jobs);
-void free_jobs(t_jobs *jobs);
-
-char    **env_to_array(t_env *lst);
-
-void ft_echo(char **args);
-void ft_cd(char **args, char **new_env);
-void ft_pwd(void);
-void ft_export(char **args, t_env **env_list);
-void ft_unset(char **args, char ***new_env);
-void ft_env(char **new_env);
-void ft_exit(void);
-
 
 #endif
