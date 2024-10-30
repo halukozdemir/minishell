@@ -229,6 +229,7 @@ int main(int argc, char **argv, char **env)
     char *input;
     t_cmd *shell_cmd;
     t_env *env_list;
+    char    **cmd;
 
     (void)argv;
     if (argc != 1)
@@ -241,26 +242,17 @@ int main(int argc, char **argv, char **env)
     {
         input = readline("minishell> ");
         if (!input)
-        {
             break;
-        }
         add_history(input);
         get_dollar(&input, env_list);
-
-        // Komutu hazırla
-        shell_cmd = prepare_command(input, env_list);
-        if (!shell_cmd)
+        cmd = get_token(input);
+        int g = 0;
+        while (cmd[g])
         {
-            free(input);
-            continue;
+            printf("%s\n", cmd[g]);
+            g++;
         }
-
-        // Komutu çalıştır
-        execute_command(shell_cmd);
-
-        // Temizleme işlemleri
         free(input);
-        cleanup_command(shell_cmd);
     }
 
     return 0;

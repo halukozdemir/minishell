@@ -3,15 +3,18 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: halozdem <halozdem@student.42.fr>          +#+  +:+       +#+        */
+/*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 13:38:02 by halozdem          #+#    #+#             */
-/*   Updated: 2024/10/29 18:42:43 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/10/30 17:41:21 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef MINISHELL_H
 # define MINISHELL_H
+
+#define SPECIAL_CHARS "<>| \0"
+#define QUOTES "'\""
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -39,6 +42,34 @@
 //     bool                is_pipe;       // Pipe kullanımı var mı (örneğin '|')
 //     struct s_command    *next;         // Bir sonraki komut (pipe için)
 // } t_command;
+
+typedef struct s_split
+{
+	int		i;
+	int		count;
+	int		word_len;
+	bool	in_quote;
+	bool	in_word;
+	char	quote_type;
+	int		start;
+}	t_split;
+
+typedef struct s_quotes
+{
+	bool	in_single_quotes;
+	bool	in_double_quotes;
+}	t_quotes;
+
+typedef struct s_dollar_params
+{
+	char		*input;
+	char		*new_input;
+	int			len;
+	int			idx;
+	int			i;
+	t_quotes	quotes;
+}	t_dollar_params;
+
 typedef struct s_env
 {
 	char				*key;
@@ -90,31 +121,50 @@ typedef struct s_executor
 	struct s_redirect	*redirect;//redirect'ın türünü ve adını tutan struct
 }						t_executor;
 
+int	calculate_value_length(char *input, t_env *env, int *i, t_quotes *quotes);
+int	calculate_new_length(char *input, t_env *env);
 
-t_env	*new_node(t_env **lst, char *env, int end, int i);
-char	**get_token(char *input);
-char	**split_words(char *input, char **str, unsigned int word_count);
-char	*put_word(char *word, char *input, int i, int word_len);
-int		word_counter(char *input);
-char	**split_by_meta(char **str);
-void	run_cmds(char *input, t_env *env);
-int		syntax_cont(char *input, bool *has_error);
-int		pipe_cont(char *input);
-int		redir_cont(char *input);
-int		redir_cont2(char *input, int i, char c);
-int		quote_cont(char *input);
-int		is_meta(char *input, int i);
-int		is_space(char c);
-void	get_dollar(char **input, t_env *env);
-t_env	**lstadd_back2(t_env **lst, t_env *new);
-t_env	*envfunc2(char	**env);
-char	*funcval(char	*env, int start);
-char	*funckey(char	*env, int end);
-void	run_env(t_env *env2);
+bool	contains_special_operators(char *key);
+void	process_key(char **input_ptr, t_env *env, int *i, bool in_single_quotes);
+void	init_dollar_params(t_dollar_params *params, char *input, int len);
+
 void	check_quotes(char c, bool *sq, bool *dq);
-void	replace_dollar_with_value_or_remove(char **input, char *key,
-			char *value, int start, int end, bool needs_quotes);
-char	*get_env_value(t_env *env, char *key);void	process_key(char **input_ptr, t_env *env, int *i, bool in_single_quotes);
+void	replace_dollar_value(char **input, char *value, int start, int end);
+void	remove_dollar(char **input, int start, int end);
+char	*get_env_value(t_env *env, char *key);
 void	get_dollar(char **input_ptr, t_env *env);
+
+void	handle_quotes(t_split *s, char *input);
+void	handle_special_chars(t_split *s, char *input);
+void	process_quotes_and_length(t_split *s, char *input);
+void	handle_word_allocation(char *input, char **str, t_split *s, int word);
+
+void	init_split(t_split *s);
+int		skip_whitespace(char *input, int i, t_split *s);
+char	**split_words(char *input, char **str, unsigned int word_count);
+
+int		word_counter(char *input);
+char	**get_token(char *input);
+char	**free_array(char **ptr, int i);
+char	*put_word(char *word, char *input, int start, int word_len);
+
+int	pipe_cont(char *input);
+int	redir_cont2(char *input, int i, char c);
+int	redir_cont(char *input);
+int	quote_cont(char *input);
+int	syntax_cont(char *input, bool *has_error);
+
+int	is_meta(char *input, int i);
+int	is_space(char c);
+
+int count_env_length(t_env *lst);
+char **env_to_char_array(t_env *env_list);
+void free_env_array(char **env_array);
+
+t_env	**lstadd_back2(t_env **lst, t_env *new);
+char	*funckey(char *env, int end);
+char	*funcval(char *env, int start);
+t_env	*envfunc2(char **env);
+
 
 #endif
