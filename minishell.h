@@ -6,7 +6,7 @@
 /*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 13:38:02 by halozdem          #+#    #+#             */
-/*   Updated: 2024/10/30 17:41:21 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/10/31 19:34:48 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,7 @@
 //     struct s_command    *next;         // Bir sonraki komut (pipe için)
 // } t_command;
 
+
 typedef struct s_split
 {
 	int		i;
@@ -59,16 +60,6 @@ typedef struct s_quotes
 	bool	in_single_quotes;
 	bool	in_double_quotes;
 }	t_quotes;
-
-typedef struct s_dollar_params
-{
-	char		*input;
-	char		*new_input;
-	int			len;
-	int			idx;
-	int			i;
-	t_quotes	quotes;
-}	t_dollar_params;
 
 typedef struct s_env
 {
@@ -121,19 +112,6 @@ typedef struct s_executor
 	struct s_redirect	*redirect;//redirect'ın türünü ve adını tutan struct
 }						t_executor;
 
-int	calculate_value_length(char *input, t_env *env, int *i, t_quotes *quotes);
-int	calculate_new_length(char *input, t_env *env);
-
-bool	contains_special_operators(char *key);
-void	process_key(char **input_ptr, t_env *env, int *i, bool in_single_quotes);
-void	init_dollar_params(t_dollar_params *params, char *input, int len);
-
-void	check_quotes(char c, bool *sq, bool *dq);
-void	replace_dollar_value(char **input, char *value, int start, int end);
-void	remove_dollar(char **input, int start, int end);
-char	*get_env_value(t_env *env, char *key);
-void	get_dollar(char **input_ptr, t_env *env);
-
 void	handle_quotes(t_split *s, char *input);
 void	handle_special_chars(t_split *s, char *input);
 void	process_quotes_and_length(t_split *s, char *input);
@@ -165,6 +143,22 @@ t_env	**lstadd_back2(t_env **lst, t_env *new);
 char	*funckey(char *env, int end);
 char	*funcval(char *env, int start);
 t_env	*envfunc2(char **env);
+void	process_key(char **input_ptr, t_env *env, int *i, bool in_single_quotes);
+
+void	check_quotes(char c, bool *sq, bool *dq);
+char	*get_env_value(t_env *env, char *key);
+bool	contains_special_operators(char *key);
+void	process_key(char **input_ptr, t_env *env, int *i, bool in_single_quotes);
+void	remove_dollar(char **input, char *value, int start, int end);
+void	update_quote_states(char c, bool *in_single_quotes,
+		bool *in_double_quotes);
+char	*extract_key(char *input, int *i);
+int	calculate_key_length(char *input, int *i, t_env *env);
+int	update_total_length(char *input, t_env *env);
+int	handle_dollar_replacement(char *input, char *new_input, t_env *env,
+		int *index);
+void	construct_new_input(char *input, char *new_input, t_env *env);
+void	get_dollar(char **input_ptr, t_env *env);
 
 
 #endif
