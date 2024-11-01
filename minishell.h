@@ -6,7 +6,7 @@
 /*   By: beyildiz <beyildiz@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 13:38:02 by halozdem          #+#    #+#             */
-/*   Updated: 2024/10/20 17:43:24 by beyildiz         ###   ########.fr       */
+/*   Updated: 2024/11/01 18:37:27 by beyildiz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,7 +84,7 @@ char	*put_word(char *word, char *input, int i, int word_len);
 int		word_counter(char *input);
 char	**split_by_meta(char **str);
 void	run_cmds(char *input, char **env);
-int		syntax_cont(char *input, bool *has_error);
+int		syntax_cont(char *input);
 int		pipe_cont(char *input);
 int		redir_cont(char *input);
 int		redir_cont2(char *input, int i, char c);
@@ -92,5 +92,8 @@ int		quote_cont(char *input);
 int		is_meta(char *input, int i);
 int		is_space(char c);
 char	*find_env_val(char *key, char **env);
+int	check_input(char *input);
+int	check_doublemeta(char *input, int *i);
+void	skip_space(char *input, int *i, int *is_space);
 
 #endif

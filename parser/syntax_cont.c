@@ -1,211 +1,88 @@
 #include "../minishell.h"
 
-int	pipe_cont(char *input)
+void	skip_space_rev(char *input, int *i)
+{
+	*i = *i - 1;
+	while (input[*i] == ' ' || input[*i] == '\t' || input[*i] == '\v'
+		|| input[*i] == '\f' || input[*i] == '\r')
+		(*i)--;
+}
+
+int	check_doublemeta(char *input, int *i)
+{
+		printf("gireeeer\n");
+	if (input[*i] == '>' && input[*i + 1] == '>')
+	{
+	printf("giriyooooooooooo\n");
+		*i++;
+		return 1;
+
+	}
+	if (input[*i] == '<' && input[*i + 1] == '<')
+	{
+		*i++;
+		return 1;
+	}
+	//printf("input[i] = %c\n", input[i]);
+	return 2;
+}
+
+void	skip_space(char *input, int *i, int *is_space)
+{
+	while (input[*i] == ' ' || input[*i] == '\t' || input[*i] == '\v'
+		|| input[*i] == '\f' || input[*i] == '\r')
+	{
+		*is_space = 1;
+		(*i)++;
+	}
+}
+
+int	check_input(char *input)
 {
 	int i;
-	bool	in_quote;
-	char const	*quotes = "'\"";
-	char    quote_type;
+	int is_space;
 
-	in_quote = false;
+	is_space = 0;
 	i = 0;
-	while (input[i] == ' ' || input[i] == '\t' || input[i] == '\v'
-		|| input[i] == '\f' || input[i] == '\r')
-		i++;
-	if (input[i] == '|')
-		return 1;
-	while (input[i])
+	skip_space(input, &i, &is_space);
+	if (is_meta(input, i) == 1 || input[i] == '\0')
 	{
-		if (ft_strchr(quotes, input[i]))
-		{
-			if (in_quote == false)
-			{
-				quote_type = input[i];
-				in_quote = !in_quote;
-			}
-			else
-				if (input[i] == quote_type)
-					in_quote = !in_quote;
-		}
-		if (input[i] == '|' && in_quote == false)
-		{
-			i++;
-			while (input[i] == ' ' || input[i] == '\t' || input[i] == '\v'
-				|| input[i] == '\f' || input[i] == '\r')
-				i++;
-			if (input[i] == '|' || input[i] == '<' || input[i] == '>')
-				return 1;
-			if (input[i] == '\0')
-				return 1;
-		}
-		i++;
+		return 1;
+
 	}
-	return (0);
-}
-
-int	redir_cont2(char *input, int i, char c)
-{
-	bool	in_quote;
-	char const	*quotes = "'\"";
-	char    quote_type;
-
-	in_quote = false;
-	i++;
-	while (input[i] == ' ' || input[i] == '\t' || input[i] == '\v'
-		|| input[i] == '\f' || input[i] == '\r')
-		i++;
-	if (ft_strchr(quotes, input[i]))
-		{
-			if (in_quote == false)
-			{
-				quote_type = input[i];
-				in_quote = !in_quote;
-			}
-			else
-				if (input[i] == quote_type)
-					in_quote = !in_quote;
-		}
-	if (input[i] == c && in_quote == false)
-		return 1;
-	if (input[i] == '\0' && in_quote == false)//bakılacak
-		return 1;
-	return (0);
-}
-
-int	redir_cont(char *input)
-{
-	int i;
-	bool	in_quote;
-	char const	*quotes = "'\"";
-	char    quote_type;
-	int space;
-	int j;
-
-	space = 0;
-	in_quote = false;
-	i = 0;
-	while (input[i] == ' ' || input[i] == '\t' || input[i] == '\v'
-		|| input[i] == '\f' || input[i] == '\r')
-		i++;
-	if ((input[i] == '>' || input[i] == '<') && in_quote == false)
-		return 1;
-	while (input[i])
+	while(input[i])
 	{
-		if (ft_strchr(quotes, input[i]))
+		//printf("input[i] = %c\n", input[i]);
+		printf("input[i] = %c\n", input[i]);
+		if ((is_meta(input, i) == 1 && is_meta(input, i + 1)) == 1 && check_doublemeta(input, &i) != 1)
 		{
-			if (in_quote == false)
+			printf("\n-----------DEBUG----------\n");
+			return 1;
+		} 
+		skip_space(input, &i, &is_space);
+		if (input[i] == '\0')
+		{
+			skip_space_rev(input, &i);
+			if (is_meta(input, i))
 			{
-				quote_type = input[i];
-				in_quote = !in_quote;
+				return 1;
+
 			}
-			else
-				if (input[i] == quote_type)
-					in_quote = !in_quote;
 		}
-		if (input[i] == '>' && in_quote == false)
-		{
+		if (is_space != 1)
 			i++;
-			j = i;
-			while (input[i] == ' ' || input[i] == '\t' || input[i] == '\v'
-				|| input[i] == '\f' || input[i] == '\r')
-				i++;
-			if (input[i] == '\0')
-				return 1;
-			if (input[i] == '>' && is_space(input[i-1]) == 1)
-				return 1;
-			if ((input[i] == '>' && (input[i+1] == '>' || input[i+1] == '<')))
-				return 1;
-			while (input[i] == ' ' || input[i] == '\t' || input[i] == '\v'
-				|| input[i] == '\f' || input[i] == '\r')
-				i++;
-			if (is_meta(input, i) == 1)
-				return 1;
-			if (input[i] == '<' || input[i] == '|')
-				return 1;
-			while (input[i] == ' ' || input[i] == '\t' || input[i] == '\v'
-				|| input[i] == '\f' || input[i] == '\r')
-				i++;
-			if (input[i] && input[i] == '>' && input[i+1] == '\0') //buraya bakılacak
-				return 1;
-			redir_cont2(input, i, '<');
-		}
-		else if (input[i] == '<' && in_quote == false)
-		{
-			i++;
-			j = i;
-			while (input[i] == ' ' || input[i] == '\t' || input[i] == '\v'
-				|| input[i] == '\f' || input[i] == '\r')
-				i++;
-			if (input[i] == '\0')
-				return 1;
-			if (input[i] == '<' && is_space(input[i-1]) == 1)
-				return 1;
-			while (input[i] == ' ' || input[i] == '\t' || input[i] == '\v'
-				|| input[i] == '\f' || input[i] == '\r')
-				i++;
-			if (is_meta(input, i) == 1)
-				return 1;
-			if (input[j] == '>')
-				return 1;
-			if (input[i] == '>' || input[i] == '|')
-				return 1;
-			while (input[i] == ' ' || input[i] == '\t' || input[i] == '\v'
-				|| input[i] == '\f' || input[i] == '\r')
-				i++;
-			if (input[i] && input[i] == '<' && input[i+1] == '\0')
-				return 1;
-			space = 0;
-			redir_cont2(input, i, '>');
-		}
-		i++;
 	}
-	return (0);
+	return -1;
 }
 
-int	quote_cont(char *input)
+int	syntax_cont(char *input)
 {
-	char const	*quotes = "'\"";
-	char    quote_type;
-	int		i;
-	bool	in_quote;
-
-	in_quote = false;
-	i = 0;
-	while (input[i])
-	{
-		if (ft_strchr(quotes, input[i]))
-		{
-			if (in_quote == false)
-			{
-				quote_type = input[i];
-				in_quote = !in_quote;
-			}
-			else
-				if (input[i] == quote_type)
-					in_quote = !in_quote;
-		}
-		i++;
-	}
-	if (in_quote)
-		return 1;
-	else
-		return 0;
-}
-
-int	syntax_cont(char *input, bool *has_error)
-{
-	int i;
-
-	i = 0;
-	while (input[i] == ' ' || input[i] == '\t' || input[i] == '\v'
-		|| input[i] == '\f' || input[i] == '\r')
-		i++;
-	if (input[i] == '\0')
+	if(!input)
 		return (0);
-	if (pipe_cont(input) || redir_cont(input) || quote_cont(input))
+	if (check_input(input) == 1)
 	{
-		*has_error = true;
-		return 0;
+		printf("syntax error\n");
+		return 1;
 	}
-	return (1);
+	return 0;
 }

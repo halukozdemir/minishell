@@ -20,7 +20,7 @@ int main(int argc, char **argv, char **env)
 		if (!input)
 			break;
 		add_history(input);
-		syntax_cont(input, &has_error);
+		syntax_cont(input);
 		if (has_error == true)
 			printf("Syntax error.\n");
 		else
