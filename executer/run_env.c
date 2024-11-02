@@ -63,4 +63,5 @@ void free_env_array(char **env_array)
         i++;
     }
     free(env_array);
+
 }

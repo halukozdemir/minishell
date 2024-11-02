@@ -1,161 +1,63 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   parser.c                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/10/30 15:33:19 by halozdem          #+#    #+#             */
+/*   Updated: 2024/10/30 17:26:59 by halozdem         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../minishell.h"
 
-static char	**free_array(char **ptr, int i)
+static void	handle_initial_spaces(t_split *s, char *input)
 {
-	while (i > 0)
-	{
-		i--;
-		free(ptr[i]);
-	}
-	free(ptr);
-	return (0);
+	while (input[s->i] == ' ' || input[s->i] == '\t' || input[s->i] == '\v'
+		|| input[s->i] == '\f' || input[s->i] == '\r')
+		s->i++;
 }
 
-int word_counter(char *input)
+int	word_counter(char *input)
 {
-    int i;
-    int count;
-    bool in_quote;
-    bool in_word;
-    char *special_chars;
-	char const	*quotes = "'\"";
-	char	quote_type;
+	t_split	s;
 
-
-    special_chars = "<>| \0";
-    i = 0;
-    count = 0;
-    in_quote = false;
-    in_word = false;
-
-    while (input[i] == ' ' || input[i] == '\t' || input[i] == '\v'
-		|| input[i] == '\f' || input[i] == '\r')
-        i++;
-    while (input[i])
-    {
-        if (ft_strchr(quotes, input[i]))
+	s.i = 0;
+	s.count = 0;
+	s.in_quote = false;
+	s.in_word = false;
+	handle_initial_spaces(&s, input);
+	while (input[s.i])
+	{
+		if (ft_strchr(QUOTES, input[s.i]))
+			handle_quotes(&s, input);
+		if (!s.in_quote)
 		{
-			if (in_quote == false)
+			if (ft_strchr(SPECIAL_CHARS, input[s.i]))
+				handle_special_chars(&s, input);
+			else if (!s.in_word)
 			{
-				quote_type = input[i];
-				in_quote = !in_quote;
+				s.in_word = true;
+				s.count++;
 			}
-			else
-				if (input[i] == quote_type)
-            		in_quote = !in_quote;
 		}
-        if (!in_quote)
-        {
-            if (ft_strchr(special_chars, input[i]))
-            {
-                if (input[i] != ' ')
-                    count++;
-                if ((input[i] == '<' || input[i] == '>') && input[i] == input[i + 1])
-                    i++;
-                in_word = false;
-            }
-            else if (!in_word)
-            {
-                in_word = true;
-                count++;
-            }
-        }
-        i++;
-    }
-    // printf("%d-*-*-*-\n", count);
-    return count;
-}
-
-char	*put_word(char *word, char *input, int start, int word_len)
-{
-	int j = 0;
-	int k = start;
-
-	while (word_len > 0)
-	{
-		word[j] = input[k];
-		j++;
-		k++;
-		word_len--;
+		s.i++;
 	}
-	word[j] = '\0';
-	return (word);
-}
-
-char **split_words(char *input, char **str, unsigned int word_count)
-{
-    int i = 0;
-    int word = 0;
-    int word_len = 0;
-    bool in_quote = false;
-    char *special_chars = "<>| \0";
-    char const	*quotes = "'\"";
-    char    quote_type;
-
-
-    while (word < word_count)
-    {
-        while (input[i] && input[i] == ' ' && !in_quote)
-            i++;
-
-        int start = i;
-        while (input[i] && (!ft_strchr(special_chars, input[i]) || in_quote))
-        {
-            if (ft_strchr(quotes, input[i]))
-            {
-                if (in_quote == false)
-                {
-                    quote_type = input[i];
-                    in_quote = !in_quote;
-                }
-                else
-                    if (input[i] == quote_type)
-                        in_quote = !in_quote;
-            }
-            word_len++;
-            i++;
-        }
-
-        if (ft_strchr(special_chars, input[i]) && !in_quote && word_len == 0)
-        {
-            word_len = 1;
-            if(input[i] == input[i + 1])
-            {
-                i++;
-                word_len = 2;
-            }
-            i++;
-        }
-
-        str[word] = (char *)malloc((sizeof(char) * (word_len + 1)));
-        if (!str[word])
-            return free_array(str, word);
-        put_word(str[word], input, start, word_len);
-        word_len = 0;
-        word++;
-    }
-    str[word] = 0;
-    return str;
+	return (s.count);
 }
 
 char	**get_token(char *input)
 {
 	unsigned int	word_count;
 	char			**str;
-	int 			i;
 
-	i = 0;
 	word_count = word_counter(input);
-    if (word_count == -1)
-        return (NULL);
+	if (word_count == -1)
+		return (NULL);
 	str = (char **)malloc(sizeof(char *) * (word_count + 1));
 	if (!str)
-		return (0);
+		return (NULL);
 	str = split_words(input, str, word_count);
-	// while (str[i])
-	// {
-	// 	printf("%s\n", str[i]);
-	// 	i++;
-	// }
 	return (str);
 }

@@ -6,18 +6,16 @@
 /*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/11 16:35:57 by halozdem          #+#    #+#             */
-/*   Updated: 2024/10/20 17:13:34 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/10/30 18:01:57 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "libft.h"
-#include "stdio.h"
 
 char	*ft_substr(char const *s, unsigned int start, size_t len)
 {
 	char			*str;
 	unsigned int	i;
-
 
 	i = 0;
 	if (!s)
