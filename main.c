@@ -6,230 +6,295 @@
 #include <sys/wait.h>
 #include <fcntl.h>
 
-// Özel strtok işlevi
-char *custom_strtok(char *str, const char *delim)
+void add_job_to_jobs(t_jobs *jobs, t_job *new_job)
 {
-    static char *last;
-    char *token;
-    int i;
-
-    if (str)
-        last = str;
-    if (!last || *last == '\0')
-        return NULL;
-
-    token = last;
-    while (*last)
+    // printf("Adding job to jobs list...\n");
+    if (!jobs->job_list)
     {
-        i = 0;
-        while (delim[i] != '\0')
-        {
-            if (*last == delim[i])
-            {
-                *last = '\0';
-                last++;
-                if (*token != '\0')
-                    return token;
-                else
-                    token = last;
-            }
-            i++;
-        }
-        last++;
+        jobs->job_list = new_job;
     }
-
-    last = NULL;
-    return *token ? token : NULL;
+    else
+    {
+        t_job *current = jobs->job_list;
+        while (current->next_job)
+            current = current->next_job;
+        current->next_job = new_job;
+    }
+    jobs->len++;
+    // printf("Job added. Current job list length: %d\n", jobs->len);
 }
 
-// Komut yolunu bulma fonksiyonu
-char *get_command_path(char *cmd) {
-    if (access(cmd, X_OK) == 0) {
-        return cmd;
-    } else {
-        char *path = getenv("PATH");
-        if (!path) {
-            return cmd;
-        }
-        char *token = custom_strtok(path, ":");
-        while (token != NULL) {
-            char full_path[1024];
-            snprintf(full_path, sizeof(full_path), "%s/%s", token, cmd);
-            if (access(full_path, X_OK) == 0) {
-                return strdup(full_path);
-            }
-            token = custom_strtok(NULL, ":");
-        }
-    }
-    return cmd;
-}
-
-// Komutu hazırlayan fonksiyon
-t_cmd *prepare_command(char *input, t_env *env_list)
+void fill_jobs_from_tokens(t_mshell *shell, char **tokens)
 {
-    t_cmd *shell_cmd;
-    char **tokens;
-    int token_count = 0;
     int i = 0;
-    char *temp_token;
+    t_job *current_job = NULL;
 
-    // İlk geçişte token sayısını belirliyoruz
-    char *temp_input = strdup(input);
-    temp_token = custom_strtok(temp_input, " ");
-    while (temp_token != NULL) {
-        token_count++;
-        temp_token = custom_strtok(NULL, " ");
-    }
-    free(temp_input);
-
-    // t_cmd ve executor yapısını oluşturuyoruz
-    shell_cmd = malloc(sizeof(t_cmd));
-    if (!shell_cmd)
-        return NULL;
-    shell_cmd->env = env_list;
-    shell_cmd->executor = malloc(sizeof(t_executor));
-    if (!shell_cmd->executor) {
-        free(shell_cmd);
-        return NULL;
-    }
-
-    // Token sayısı kadar yer açıyoruz
-    tokens = malloc(sizeof(char *) * (token_count + 1)); // +1, NULL bitiş için
-    temp_token = custom_strtok(input, " ");
-    while (temp_token != NULL) {
-        tokens[i] = strdup(temp_token);
-        i++;
-        temp_token = custom_strtok(NULL, " ");
-    }
-    tokens[i] = NULL;
-
-    // Yönlendirme işlemlerini kontrol et
-    shell_cmd->ncmd = tokens;
-    shell_cmd->executor->argv = malloc(sizeof(char *) * (token_count + 1)); // Argümanları saklamak için token_count kadar yer açıyoruz
-    shell_cmd->executor->redirect = NULL;
-    i = 0;
-    int arg_count = 0;
-
-    while (tokens[i] != NULL) {
-        // ">>" kontrolünü ilk sıraya aldık
-        if ((ft_strncmp(tokens[i], ">>", 2) == 0) && tokens[i + 1] != NULL)
+    shell->jobs->type = NONE;
+    shell->jobs->job_list = NULL;
+    shell->jobs->len = 0;
+    shell->jobs->active_pipe[0] = -1;
+    shell->jobs->active_pipe[1] = -1;
+    shell->jobs->old_pipe[0] = -1;
+    shell->jobs->old_pipe[1] = -1;
+    while (tokens[i])
+    {
+        // printf("Processing token: %s\n", tokens[i]);
+        if (ft_strncmp(tokens[i], "|", 1) == 0)
         {
-            // Append yönlendirme
-            t_redirection *new_redir = malloc(sizeof(t_redirection));
-            new_redir->type = 11; // Append type için 11 kullanıyoruz
-            new_redir->filename = strdup(tokens[i + 1]); // Dosya adını yönlendirmeye ekle
-            new_redir->next = shell_cmd->executor->redirect;
-            shell_cmd->executor->redirect = new_redir;
-            i += 2;
+            shell->jobs->type = PIPE;
+            i++;
+            continue;
         }
-        else if (ft_strncmp(tokens[i], ">", 1) == 0 && tokens[i + 1] != NULL)
+
+        current_job = malloc(sizeof(t_job));
+        if (!current_job)
         {
-            // Üzerine yazma yönlendirme
-            t_redirection *new_redir = malloc(sizeof(t_redirection));
-            new_redir->type = 13;
-            new_redir->filename = strdup(tokens[i + 1]);
-            new_redir->next = shell_cmd->executor->redirect;
-            shell_cmd->executor->redirect = new_redir;
-            i += 2;
+            printf("Memory allocation failed for current job\n");
+            return;
         }
-        else
+
+        current_job->cmd = ft_strdup(tokens[i++]);
+        // printf("Command set: %s\n", current_job->cmd);
+
+        int arg_count = 0;
+        int arg_start = i;
+        while (tokens[i] && ft_strncmp(tokens[i], "|", 1) != 0 && ft_strncmp(tokens[i], ">", 1) != 0 && ft_strncmp(tokens[i], "<", 1) != 0 && ft_strncmp(tokens[i], ">>", 2) != 0 && ft_strncmp(tokens[i], "<<", 2) != 0)
         {
-            shell_cmd->executor->argv[arg_count] = strdup(tokens[i]);
             arg_count++;
             i++;
         }
-    }
-    shell_cmd->executor->argv[arg_count] = NULL;
 
-    return shell_cmd;
-}
-
-// Bellek temizleme işlemi
-void cleanup_command(t_cmd *shell_cmd)
-{
-    int i = 0;
-
-    if (!shell_cmd)
-        return;
-    if (shell_cmd->ncmd)
-    {
-        while (shell_cmd->ncmd[i])
+        current_job->args = malloc(sizeof(char *) * (arg_count + 2)); // +2: cmd + NULL
+        if (!current_job->args)
         {
-            free(shell_cmd->ncmd[i]);
+            free(current_job);
+            printf("Memory allocation failed for arguments\n");
+            return;
+        }
+
+        current_job->args[0] = ft_strdup(current_job->cmd);
+        int j = 1;
+        for (int k = arg_start; k < arg_start + arg_count; k++)
+        {
+            current_job->args[j++] = ft_strdup(tokens[k]);
+            // printf("Argument added: %s\n", tokens[k]);
+        }
+        current_job->args[j] = NULL;
+
+        current_job->redir = malloc(sizeof(t_redir));
+        if (!current_job->redir)
+        {
+            free(current_job->args);
+            free(current_job);
+            printf("Memory allocation failed for redirection\n");
+            return;
+        }
+
+        current_job->redir->in_file = -1;
+        current_job->redir->out_file = -1;
+        current_job->redir->files = NULL;
+        current_job->redir->eof = NULL;
+        current_job->redir->args = NULL;
+
+        while (tokens[i] && (ft_strncmp(tokens[i], ">", 1) == 0 || ft_strncmp(tokens[i], "<", 1) == 0 || ft_strncmp(tokens[i], ">>", 2) == 0 || ft_strncmp(tokens[i], "<<", 2) == 0))
+        {
+            if (ft_strncmp(tokens[i], ">>", 2) == 0)
+            {
+                i++;
+                if (tokens[i])
+                {
+                    current_job->redir->out_file = open(tokens[i], O_CREAT | O_WRONLY | O_APPEND, 0644);
+                    if (current_job->redir->out_file == -1)
+                    {
+                        perror("open error");
+                        free(current_job->redir);
+                        free(current_job->args);
+                        free(current_job);
+                        return;
+                    }
+                    // printf("Appending output redirection to file: %s\n", tokens[i]);
+                }
+            }
+            else if (ft_strncmp(tokens[i], "<<", 2) == 0)
+            {
+                i++;
+                if (tokens[i])
+                {
+                    current_job->redir->eof = ft_strdup(tokens[i]);
+                    // printf("Heredoc EOF set: %s\n", tokens[i]);
+                }
+            }
+            // printf("Processing redirection: %s\n", tokens[i]);
+            else if (ft_strncmp(tokens[i], ">", 1) == 0)
+            {
+                i++;
+                if (tokens[i])
+                {
+                    current_job->redir->out_file = open(tokens[i], O_CREAT | O_WRONLY | O_TRUNC, 0644);
+                    if (current_job->redir->out_file == -1)
+                    {
+                        perror("open error");
+                        free(current_job->redir);
+                        free(current_job->args);
+                        free(current_job);
+                        return;
+                    }
+                    // printf("Output redirection set to file: %s\n", tokens[i]);
+                }
+            }
+            else if (ft_strncmp(tokens[i], "<", 1) == 0)
+            {
+                i++;
+                if (tokens[i])
+                {
+                    current_job->redir->in_file = open(tokens[i], O_RDONLY);
+                    if (current_job->redir->in_file == -1)
+                    {
+                        perror("open error");
+                        free(current_job->redir);
+                        free(current_job->args);
+                        free(current_job);
+                        return;
+                    }
+                    // printf("Input redirection set to file: %s\n", tokens[i]);
+                }
+            }
             i++;
         }
-        free(shell_cmd->ncmd);
+
+        current_job->next_job = NULL;
+        add_job_to_jobs(shell->jobs, current_job);
     }
-    if (shell_cmd->executor)
-        free(shell_cmd->executor);
-    free(shell_cmd);
 }
 
-int execute_command(t_cmd *shell_cmd) {
-    pid_t pid;
-    int status;
-    int fd;
-    t_executor *executor = shell_cmd->executor;
-    t_redirection *redir = executor->redirect;
 
-    pid = fork();
-    if (pid < 0) {
-        perror("fork");
-        return 1;
-    } else if (pid == 0) {
-        // Yönlendirmeleri çocuk süreçte gerçekleştiriyoruz
-        while (redir) {
-            if (redir->type == 13) { // output redirection (üzerine yazma)
-                fprintf(stderr, "Redirecting with > to file: %s\n", redir->filename);
-                fd = open(redir->filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-            } else if (redir->type == 11) { // append redirection (sonuna ekleme)
-                fprintf(stderr, "Redirecting with >> to file: %s\n", redir->filename);
-                fd = open(redir->filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
-            } else {
-                fprintf(stderr, "Unsupported redirection type\n");
-                exit(1);
-            }
 
-            if (fd < 0) {
-                perror("open");
-                exit(1);
-            }
 
-            // Çıktıyı yönlendiriyoruz
-            if (dup2(fd, STDOUT_FILENO) < 0) {
-                perror("dup2");
-                close(fd);
-                exit(1);
-            }
 
-            // Dosya descriptorünü kapatıyoruz çünkü yönlendirme yapılmıştır
-            close(fd);
-            // Sonraki yönlendirmeye geçiyoruz
-            redir = redir->next;
-        }
 
-        // Komutu çalıştır
-        fprintf(stderr, "Executing command: %s\n", executor->argv[0]);
-        if (execve(get_command_path(executor->argv[0]), executor->argv, shell_cmd->envp) == -1) {
-            perror("execve");
-            exit(EXIT_FAILURE);
-        }
-    } else {
-        // Ebeveyn süreç çocuk sürecin tamamlanmasını bekliyor
-        if (waitpid(pid, &status, 0) < 0) {
-            perror("waitpid");
-            return 1;
-        }
-    }
-    return 0;
-}
+
+
+
+
+
+// #include <stdio.h>
+
+// void print_debug_redir(t_redir *redir)
+// {
+//     if (!redir)
+//     {
+//         printf("No redirection.\n");
+//         return;
+//     }
+//     printf("Redirection:\n");
+//     printf("  In file: %d\n", redir->in_file);
+//     printf("  Out file: %d\n", redir->out_file);
+//     printf("  EOF: %s\n", redir->eof ? redir->eof : "NULL");
+//     printf("  Args: %s\n", redir->args ? redir->args : "NULL");
+//     if (redir->files)
+//     {
+//         int i = 0;
+//         printf("  Files:\n");
+//         while (redir->files[i])
+//         {
+//             printf("    File[%d]: %s\n", i, redir->files[i]);
+//             i++;
+//         }
+//     }
+//     else
+//     {
+//         printf("  No additional files.\n");
+//     }
+// }
+
+// void print_debug_job(t_job *job)
+// {
+//     while (job)
+//     {
+//         printf("Job:\n");
+//         printf("  Command: %s\n", job->cmd);
+
+//         if (job->args)
+//         {
+//             int i = 0;
+//             printf("  Arguments:\n");
+//             while (job->args[i])
+//             {
+//                 printf("    Arg[%d]: %s\n", i, job->args[i]);
+//                 i++;
+//             }
+//         }
+//         else
+//         {
+//             printf("  No arguments.\n");
+//         }
+
+//         print_debug_redir(job->redir);
+
+//         job = job->next_job;
+//     }
+// }
+
+// void print_debug_jobs(t_jobs *jobs)
+// {
+//     if (!jobs)
+//     {
+//         printf("No jobs to display.\n");
+//         return;
+//     }
+
+//     printf("Jobs structure:\n");
+//     printf("  Type: %d\n", jobs->type);
+//     printf("  Length: %d\n", jobs->len);
+//     printf("  Pipe[0]: %d, Pipe[1]: %d\n", jobs->pipe[0], jobs->pipe[1]);
+
+//     if (jobs->job_list)
+//     {
+//         print_debug_job(jobs->job_list);
+//     }
+//     else
+//     {
+//         printf("  No job list.\n");
+//     }
+// }
+
+// void print_debug_mshell(t_mshell *shell)
+// {
+//     if (!shell)
+//     {
+//         printf("Shell structure is NULL.\n");
+//         return;
+//     }
+
+//     printf("Mshell structure:\n");
+//     print_debug_jobs(shell->jobs);
+
+//     if (shell->success_arr)
+//     {
+//         int i = 0;
+//         printf("Success Array:\n");
+//         while (shell->success_arr[i])
+//         {
+//             printf("  Success[%d]: %s\n", i, shell->success_arr[i]);
+//             i++;
+//         }
+//     }
+//     else
+//     {
+//         printf("No success array.\n");
+//     }
+
+//     printf("Env struct: %p\n", shell->env);  // Assuming env will be printed elsewhere
+// }
+
+
 
 int main(int argc, char **argv, char **env)
 {
     char *input;
-    t_cmd *shell_cmd;
     t_env *env_list;
-    char    **cmd;
+    t_mshell mshell;
+    char **cmd;
 
     (void)argv;
     if (argc != 1)
@@ -237,7 +302,8 @@ int main(int argc, char **argv, char **env)
 
     // env'i t_env structına dönüştürme
     env_list = envfunc2(env);
-
+    mshell.jobs = ft_calloc(1, sizeof(t_jobs));
+    mshell.jobs->env = env_list;
     while (1)
     {
         input = readline("minishell> ");
@@ -246,12 +312,13 @@ int main(int argc, char **argv, char **env)
         add_history(input);
         get_dollar(&input, env_list);
         cmd = get_token(input);
-        int g = 0;
-        while (cmd[g])
-        {
+        int g = -1;
+        while (cmd[++g])
             printf("%s\n", cmd[g]);
-            g++;
-        }
+
+        fill_jobs_from_tokens(&mshell, cmd);
+        executor(mshell.jobs);
+
         free(input);
     }
 

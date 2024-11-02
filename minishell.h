@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
+/*   By: halozdem <halozdem@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 13:38:02 by halozdem          #+#    #+#             */
-/*   Updated: 2024/10/31 19:34:48 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/11/02 14:53:17 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,11 +55,11 @@ typedef struct s_split
 	int		start;
 }	t_split;
 
-typedef struct s_quotes
-{
-	bool	in_single_quotes;
-	bool	in_double_quotes;
-}	t_quotes;
+// typedef struct s_quotes
+// {
+// 	bool	in_single_quotes;
+// 	bool	in_double_quotes;
+// }	t_quotes;
 
 typedef struct s_env
 {
@@ -69,48 +69,93 @@ typedef struct s_env
 	struct s_env		*prev;
 }	t_env;
 
-typedef struct  s_cmd
+// typedef struct  s_cmd
+// {
+// 	char				**ncmd; // pipe'a göre bölünmüş inputu burda tutuyoruz.
+// 	int					pipe_count;
+// 	char				*cleaned; //executera gönderilecek double char pointer'ın tırnaklarının çıkartılmış hali
+// 	char				**sep_path;//env'deki PATH'ın : işaretine göre split'lenmiş hali
+
+// 	int					status;//$? için tutulan status
+// 	int					**fd;//pipe fonksiyonunda açılan fd'leri tutacak
+// 	char				**envp;//t_env'nin char **'a dönüştürülmüş hali
+
+// 	t_env		        *env;
+// 	t_env		        *exp;// export komutunda key'e atanmış herhangi bir value yoksa o keyi env'ye eklemez, exp structına ekler
+// 	struct s_executor	*executor;
+// }t_cmd;
+
+// typedef struct s_redirect
+// {
+// 	int type; // 10: heredoc, 11: append, 12: input, 13: output
+// 	char				*filename;
+// 	struct s_redirect	*next;
+// } t_redirection;
+
+// typedef struct s_files
+// {
+// 	int					fd_heredoc[2];//açılan dosyaların fd'lerini tutar
+// 	int					error;
+// 	int					fd_input;
+// 	int					fd_output;
+// 	char				*input;
+// 	char				*output;
+// 	char				*heredoc;
+// }						t_files;
+
+// typedef struct s_executor
+// {
+// 	char				**argv;//execve'ye göndereceğimiz char **
+// 	pid_t				pid;//child process'lerde execve çalıştırmak için
+// 	t_files				*files;//redirection structı
+// 	struct s_executor	*next;//pipe varsa yeni bir düğüm olarak kullanılır
+// 	struct s_redirect	*redirect;//redirect'ın türünü ve adını tutan struct
+// }						t_executor;
+
+typedef struct s_job t_job;
+typedef struct s_jobs t_jobs;
+typedef struct s_redir t_redir;
+
+typedef enum e_type
 {
-	char				**ncmd; // pipe'a göre bölünmüş inputu burda tutuyoruz.
-	int					pipe_count;
-	char				*cleaned; //executera gönderilecek double char pointer'ın tırnaklarının çıkartılmış hali
-	char				**sep_path;//env'deki PATH'ın : işaretine göre split'lenmiş hali
+    NONE,
+    PIPE,
+    EXEC
+}   t_type;
 
-	int					status;//$? için tutulan status
-	int					**fd;//pipe fonksiyonunda açılan fd'leri tutacak
-	char				**envp;//t_env'nin char **'a dönüştürülmüş hali
-
-	t_env		        *env;
-	t_env		        *exp;// export komutunda key'e atanmış herhangi bir value yoksa o keyi env'ye eklemez, exp structına ekler
-	struct s_executor	*executor;
-}t_cmd;
-
-typedef struct s_redirect
+struct s_redir
 {
-	int type; // 10: heredoc, 11: append, 12: input, 13: output
-	char				*filename;
-	struct s_redirect	*next;
-} t_redirection;
+    int     in_file;
+    int     out_file;
+    char    **files;
+    char    *eof;
+    char    *args;
+};
 
-typedef struct s_files
+struct s_job
 {
-	int					fd_heredoc[2];//açılan dosyaların fd'lerini tutar
-	int					error;
-	int					fd_input;
-	int					fd_output;
-	char				*input;
-	char				*output;
-	char				*heredoc;
-}						t_files;
+    char    *cmd;
+    char    **args;
+    t_redir *redir;
+    t_job   *next_job;
+};
 
-typedef struct s_executor
+struct s_jobs
 {
-	char				**argv;//execve'ye göndereceğimiz char **
-	pid_t				pid;//child process'lerde execve çalıştırmak için
-	t_files				*files;//redirection structı
-	struct s_executor	*next;//pipe varsa yeni bir düğüm olarak kullanılır
-	struct s_redirect	*redirect;//redirect'ın türünü ve adını tutan struct
-}						t_executor;
+    t_type  type;
+    t_job   *job_list;
+    t_env   *env;  // t_env * olarak güncellendi
+    int     len;
+    int     active_pipe[2];
+	int		old_pipe[2];
+};
+
+typedef struct s_mshell
+{
+    t_jobs  *jobs;
+    char    **success_arr;
+}   t_mshell;
+
 
 void	handle_quotes(t_split *s, char *input);
 void	handle_special_chars(t_split *s, char *input);
@@ -160,5 +205,11 @@ int	handle_dollar_replacement(char *input, char *new_input, t_env *env,
 void	construct_new_input(char *input, char *new_input, t_env *env);
 void	get_dollar(char **input_ptr, t_env *env);
 
+
+
+char **env_to_double_pointer(t_env *env_list);
+char	executor(t_jobs *jobs);
+char **str_arr_realloc(char **str_arr, char *element);
+char	*find_path(char *path, char *cmd);
 
 #endif

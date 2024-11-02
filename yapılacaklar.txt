@@ -1,0 +1,11 @@
+heredoctan sonra genişletme yapılmayacak (dollarla alakalı)
+heredoc yazılacak
+redir'in daha fazla testi yapılması lazım
+
+builtsin'ler yazılacak (exportta ?'i ile başlayan key olamaz)
+
+
+sinyaller eklenecek
+
+$?
+

@@ -1,5 +1,5 @@
 NAME = minishell
-SRC = main.c executer/run_env.c executer/run_env2.c parser/dollar.c parser/dollar_2.c parser/dollar_3.c parser/parser_utils_2.c parser/parser_utils.c parser/parser.c parser/syntax_cont.c parser/syntax_cont2.c
+SRC = main.c executer/run_env.c executer/run_env2.c executer/executor.c executer/new_exec.c parser/dollar.c parser/dollar_2.c parser/dollar_3.c parser/parser_utils_2.c parser/parser_utils.c parser/parser.c parser/syntax_cont.c parser/syntax_cont2.c
 OBJ := $(SRC:.c=.o)
 CFLAGS =  #-fsanitize=address -g#-Wall -Wextra -Werror
 CC = gcc
