@@ -6,7 +6,7 @@
 /*   By: halozdem <halozdem@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 13:38:02 by halozdem          #+#    #+#             */
-/*   Updated: 2024/11/02 14:53:17 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/11/04 19:18:06 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,10 @@
 #include <stdbool.h>
 #include <limits.h>
 #include <fcntl.h>  // Dosya modları ve open() için gerekli
+#include <signal.h>
+# include "termios.h"
+# include "termcap.h"
+# include "sys/wait.h"
 
 // typedef struct s_redirection
 // {

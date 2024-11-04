@@ -6,7 +6,7 @@
 /*   By: halozdem <halozdem@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 19:35:40 by halozdem          #+#    #+#             */
-/*   Updated: 2024/11/02 18:09:10 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/11/03 15:37:20 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,18 +18,44 @@ void	construct_new_input(char *input, char *new_input, t_env *env)
 	int		len;
 	bool	in_single_quotes;
 	bool	in_double_quotes;
+	bool	heredoc_active;
 
 	i = 0;
 	len = 0;
 	in_single_quotes = false;
 	in_double_quotes = false;
+	heredoc_active = false;
+
 	while (input[i])
 	{
 		update_quote_states(input[i], &in_single_quotes, &in_double_quotes);
+
+		// Heredoc aktif mi kontrolü: << işaretini tespit ederse heredoc aktifleşir
+		if (!in_single_quotes && !in_double_quotes && input[i] == '<' && input[i + 1] == '<')
+		{
+			heredoc_active = true;
+			new_input[len++] = input[i++];
+			new_input[len++] = input[i++];
+			continue;
+		}
+
+		// Eğer heredoc aktifse ve bir dolar işareti varsa genişletme yapmadan kopyala
 		if (input[i] == '$' && !in_single_quotes)
 		{
-			i++;
-			len += handle_dollar_replacement(input, new_input + len, env, &i);
+			if (heredoc_active)
+			{
+				new_input[len++] = input[i++];
+				heredoc_active = false; // İlk $ işareti sonrası heredoc bitmiş gibi davranıyoruz
+			}
+			else if (input[i + 1] == ' ' || input[i + 1] == '\t' || input[i + 1] == '\0')
+			{
+				new_input[len++] = input[i++]; // $ işaretini olduğu gibi kopyala
+			}
+			else
+			{
+				i++;
+				len += handle_dollar_replacement(input, new_input + len, env, &i);
+			}
 		}
 		else
 		{

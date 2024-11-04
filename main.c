@@ -313,9 +313,8 @@ int main(int argc, char **argv, char **env)
         get_dollar(&input, env_list);
         cmd = get_token(input);
         int g = -1;
-        while (cmd[++g])
-            printf("%s\n", cmd[g]);
-
+        // while (cmd[++g])
+        //     printf("%s\n", cmd[g]);
         fill_jobs_from_tokens(&mshell, cmd);
         executor(mshell.jobs);
 
