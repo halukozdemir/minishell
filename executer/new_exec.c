@@ -24,23 +24,40 @@ char **str_arr_realloc(char **str_arr, char *element)
 	return (rtrn);
 }
 
-char	*find_path(char *path, char *cmd)
+// char	*find_path(char *path, char *cmd)
+// {
+// 	char	**splitted_path;
+// 	char	*temp;
+// 	char	*temp2;
+// 	int		i;
+// 	splitted_path = ft_split(path, ':');
+// 	i = 0;
+// 	while (splitted_path[i])
+// 	{
+// 		temp = ft_strjoin(splitted_path[i], "/");
+// 		temp2 = ft_strjoin(temp, cmd);
+// 		if (!access(temp2, X_OK))
+// 			return ((free_env_array(splitted_path)), temp2);//splitted pathi freeleyecek
+// 		free(temp);
+// 		free(temp2);
+// 		i++;
+// 	}
+// 	return (NULL);
+// }
+
+void	sep_path(t_mshell *mshell)
 {
-	char	**splitted_path;
-	char	*temp;
-	char	*temp2;
-	int		i;
-	splitted_path = ft_split(path, ':');
-	i = 0;
-	while (splitted_path[i])
+	t_env	*tmp;
+
+	tmp = mshell->jobs->env;
+	while (tmp)
 	{
-		temp = ft_strjoin(splitted_path[i], "/");
-		temp2 = ft_strjoin(temp, cmd);
-		if (!access(temp2, X_OK))
-			return ((free_env_array(splitted_path)), temp2);//splitted pathi freeleyecek
-		free(temp);
-		free(temp2);
-		i++;
+		if (ft_strncmp(tmp->key, "PATH", ft_strlen(tmp->key)) == 0)
+		{
+			mshell->jobs->sep_path = ft_split(tmp->value, ':');
+			return ;
+		}
+		tmp = tmp->next;
 	}
-	return (NULL);
+	mshell->jobs->sep_path = ft_split("", ':');
 }

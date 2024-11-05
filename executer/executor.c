@@ -126,6 +126,7 @@ char executor(t_jobs *jobs)
     i = -1;
     while (++i < jobs->len)
     {
+        jobs->job_list->status = 0;
         if (i + 1 < jobs->len)
         {
             if (pipe(jobs->active_pipe) == -1)

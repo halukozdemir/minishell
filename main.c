@@ -287,7 +287,11 @@ void fill_jobs_from_tokens(t_mshell *shell, char **tokens)
 //     printf("Env struct: %p\n", shell->env);  // Assuming env will be printed elsewhere
 // }
 
-
+void    signal_init(void)
+{
+    signal(SIGINT, signal_handler);
+    signal(SIGQUIT, SIG_IGN);
+}
 
 int main(int argc, char **argv, char **env)
 {
@@ -304,11 +308,20 @@ int main(int argc, char **argv, char **env)
     env_list = envfunc2(env);
     mshell.jobs = ft_calloc(1, sizeof(t_jobs));
     mshell.jobs->env = env_list;
+    signal_init();
+    mshell.jobs->job_list->status = 0;
     while (1)
     {
+        g_globals_exit = 0;
+        sep_path(&mshell);
         input = readline("minishell> ");
         if (!input)
             break;
+        if (g_globals_exit == 23)
+        {
+            mshell.jobs->job_list->status = 1;
+            g_globals_exit = 0;
+        }
         add_history(input);
         get_dollar(&input, env_list);
         cmd = get_token(input);

@@ -6,7 +6,7 @@
 /*   By: halozdem <halozdem@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 13:38:02 by halozdem          #+#    #+#             */
-/*   Updated: 2024/11/04 19:18:06 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/11/06 00:24:20 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,20 @@
 
 #define SPECIAL_CHARS "<>| \0"
 #define QUOTES "'\""
+
+# define IN_CAT 1
+# define IN_HEREDOC 2
+# define IN_PARENT 3
+# define HEREDOC 10
+# define APPEND 11
+# define INPUT 12
+# define OUTPUT 13
+# define C_PROCESS 101
+# define M_PROCESS 100
+# define HEREDOC_PROECESS 102
+# define BUFFER_SIZE 42
+
+int	g_globals_exit;
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -140,6 +154,7 @@ struct s_job
 {
     char    *cmd;
     char    **args;
+    int     status;
     t_redir *redir;
     t_job   *next_job;
 };
@@ -147,6 +162,7 @@ struct s_job
 struct s_jobs
 {
     t_type  type;
+    char    **sep_path;
     t_job   *job_list;
     t_env   *env;  // t_env * olarak güncellendi
     int     len;
@@ -215,5 +231,9 @@ char **env_to_double_pointer(t_env *env_list);
 char	executor(t_jobs *jobs);
 char **str_arr_realloc(char **str_arr, char *element);
 char	*find_path(char *path, char *cmd);
+
+
+void	sep_path(t_mshell *mshell);
+
 
 #endif
