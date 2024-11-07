@@ -50,6 +50,57 @@ static void	close_pipe(int pipes[2])
 	close(pipes[1]);
 }
 
+static char	*child_hdoc(int fd[2], char *eof)
+{
+    char    *arg;
+	char	*buffer;
+	int		len1;
+	int		len2;
+
+	close(fd[0]);
+	buffer = readline(">");
+    len1 = ft_strlen(buffer);
+	len2 = ft_strlen(eof);
+	while (ft_strncmp(buffer, eof, len1) || len1 != len2)
+	{
+        arg = ft_strjoin(arg, buffer);
+        free(buffer);
+        buffer = readline(">");
+		len1 = ft_strlen(buffer);
+	}
+	close(fd[1]);
+    return (arg);
+}
+
+char	*heredoc(char **eof)
+{
+    char    *arg;
+	int		fd[2];
+    int     i;
+	pid_t	pid;
+
+	if (pipe(fd) == -1)
+		return (NULL);
+	pid = fork();
+	if (pid < 0)
+		return (NULL);
+    if (pid == 0)
+    {
+        i = -1;
+        while (eof[++i])
+            arg = ft_strjoin(arg, child_hdoc(fd, eof[i]));
+        exit(0);
+    }
+	else
+    {
+        close(fd[1]);
+    	wait(NULL);
+	    dup2(fd[0], 0);
+	    close(fd[0]);
+	}
+    return (arg);
+}
+
 static void handle_redirects(t_redir *redir)
 {
     if (redir->in_file != -1)
@@ -64,23 +115,16 @@ static void handle_redirects(t_redir *redir)
             perror("dup2 out_file");
         close(redir->out_file);
     }
-    if (redir->eof)
+    int heredoc_pipe[2];
+    // Heredoc işlemi için bir pipe açıp yazılacak içerikleri oraya göndereceğiz
+    if (pipe(heredoc_pipe) == -1)
     {
-        // Heredoc işlemi için bir pipe açıp yazılacak içerikleri oraya göndereceğiz
-        int heredoc_pipe[2];
-        if (pipe(heredoc_pipe) == -1)
-        {
-            perror("pipe");
-            return;
-        }
-
-        write(heredoc_pipe[1], redir->eof, ft_strlen(redir->eof));
-        close(heredoc_pipe[1]);
-
-        if (dup2(heredoc_pipe[0], STDIN_FILENO) == -1)
-            perror("dup2 heredoc");
-        close(heredoc_pipe[0]);
+        perror("pipe");
+        return;
     }
+    if (redir->eof)
+        redir->args = heredoc(redir->eof);
+    //write(redir->out_file, redir->args, ft_strlen(redir->args));
 }
 
 static void exec_child(int i, t_jobs *jobs, char **envp)
@@ -103,49 +147,47 @@ static void exec_child(int i, t_jobs *jobs, char **envp)
         temp_job = temp_job->next_job;
         i--;
     }
-
     // Redirect işlemlerini yap
     handle_redirects(temp_job->redir);
-
-    temp = find_path(get_env_value(jobs->env, "PATH"), temp_job->cmd);
-    if (!temp)
+    if (ctrl_builtins(jobs, temp_job) == -1)
     {
-        printf("exec error\n");
-        return ;
+        temp = find_path(get_env_value(jobs->env, "PATH"), temp_job->cmd);
+        if (!temp)
+        {
+            printf("exec error\n");
+            return ;
+        }
+        execve(temp, temp_job->args, envp);
+        perror("execve");
     }
-    execve(temp, temp_job->args, envp);
-    perror("execve");
 }
 
-char executor(t_jobs *jobs)
+char executor(t_mshell *mshell)
 {
-    int     pipes[jobs->len - 1][2];
     pid_t   pid;
     int     i;
 
     i = -1;
-    while (++i < jobs->len)
+    while (++i < mshell->jobs->len)
     {
-        if (i + 1 < jobs->len)
+        if (i + 1 < mshell->jobs->len)
         {
-            if (pipe(jobs->active_pipe) == -1)
+            if (pipe(mshell->jobs->active_pipe) == -1)
                 return (perror("pipe"), EXIT_FAILURE);
         }
         pid = fork();
         if (pid == -1)
             return (perror("fork"), EXIT_FAILURE);
         if (pid == 0)
-            exec_child(i, jobs, env_to_double_pointer(jobs->env));
+            exec_child(i, mshell->jobs, env_to_double_pointer(mshell->jobs->env));
         if (i > 0)
-            close_pipe(jobs->old_pipe);
-        if (i + 1 < jobs->len)
+            close_pipe(mshell->jobs->old_pipe);
+        if (i + 1 < mshell->jobs->len)
         {
-            jobs->old_pipe[0] = jobs->active_pipe[0];
-            jobs->old_pipe[1] = jobs->active_pipe[1];
+            mshell->jobs->old_pipe[0] = mshell->jobs->active_pipe[0];
+            mshell->jobs->old_pipe[1] = mshell->jobs->active_pipe[1];
         }
+        waitpid(pid, &mshell->status, 0);
     }
-    i = -1;
-    while (++i < jobs->len)
-        wait(NULL);
     return (EXIT_SUCCESS);
 }

@@ -1,44 +1,71 @@
 NAME = minishell
-SRC = main.c executer/run_env.c executer/run_env2.c executer/executor.c executer/new_exec.c parser/dollar.c parser/dollar_2.c parser/dollar_3.c parser/parser_utils_2.c parser/parser_utils.c parser/parser.c parser/syntax_cont.c parser/syntax_cont2.c
-OBJ := $(SRC:.c=.o)
-CFLAGS =  #-fsanitize=address -g#-Wall -Wextra -Werror
+SRC = main.c executer/run_env.c executer/run_env2.c executer/executor.c executer/new_exec.c parser/dollar.c parser/parser_utils_2.c parser/parser_utils.c parser/parser.c parser/syntax_cont.c parser/syntax_cont2.c builtins/cd.c builtins/ctrl_builtins.c builtins/echo.c builtins/env.c builtins/exit.c builtins/export.c builtins/pwd.c 
+
 CC = gcc
+#CFLAGS = -Wall -Werror -Wextra
+RM = rm -rf
+LIBFT = lib/libft/libft.a
+READLINE = readline
+OBJ = $(SRC:.c=.o)
 
-LIB_DIR = lib
-LIB_NAME = readline-8.2
-LIB_ARCHIVE = $(LIB_NAME).tar.gz
-LIB_URL = https://ftp.gnu.org/gnu/readline/$(LIB_ARCHIVE)
-LIB_BUILD_DIR = $(LIB_DIR)/$(LIB_NAME)/build
 
-# libft ayarları
-LIBFT_DIR = lib/libft
-LIBFT_MAKEFILE = $(LIBFT_DIR)/Makefile
+RESET=\033[0m
+RED=\033[31m
+LIGHT_RED=\033[91m
+GREEN=\033[32m
+LIGHT_GREEN=\033[92m
+YELLOW=\033[33m
+LIGHT_YELLOW=\033[93m
+BLUE=\033[34m
+LIGHT_BLUE=\033[94m
+MAGENTA=\033[35m
+LIGHT_MAGENTA=\033[95m
+CYAN=\033[36m
+LIGHT_CYAN=\033[96m
+WHITE=\033[37m
+GREY=\033[90m
+LIGHT_GREY=\033[37m
 
-all: $(LIB_BUILD_DIR) libft $(NAME)
+all : $(READLINE) $(LIBFT) $(NAME)
 
-$(LIB_BUILD_DIR):
-	@mkdir -p $(LIB_DIR)
-	@curl -L $(LIB_URL) -o $(LIB_DIR)/$(LIB_ARCHIVE)
-	@tar -xzf $(LIB_DIR)/$(LIB_ARCHIVE) -C $(LIB_DIR)
-	@cd $(LIB_DIR)/$(LIB_NAME) && ./configure --prefix=$(PWD)/$(LIB_BUILD_DIR)
-	@make -C $(LIB_DIR)/$(LIB_NAME)
-	@make -C $(LIB_DIR)/$(LIB_NAME) install
+$(READLINE):
+	@echo "$(YELLOW)Compiling readline please wait$(GREEN)"
+	@curl -s -O https://ftp.gnu.org/gnu/readline/readline-8.2.tar.gz
+	@tar -xvf readline-8.2.tar.gz 2>&1 | awk '{printf "."; fflush()}'
+	@cd readline-8.2 && ./configure --prefix=${PWD}/readline 2>&1 | awk '{printf "."; fflush()}'
+	@cd readline-8.2 && make install 2>&1 | awk '{printf "."; fflush()}'
+	@echo "$(RESET)"
 
-libft:
-	@make -C $(LIBFT_DIR)
 
-$(NAME): $(OBJ) $(LIB_BUILD_DIR) libft
-	$(CC) $(CFLAGS) $(OBJ) -o $(NAME) -L$(LIB_BUILD_DIR)/lib -I$(LIB_BUILD_DIR)/include -lreadline -L$(LIBFT_DIR) -lft
+
+$(LIBFT):
+	@echo "$(YELLOW)Compailing include please wait$(GREEN)"
+	@make -C lib/libft | awk '{printf "."; fflush()}'
+	@echo ""
+	@echo "$(YELLOW)Compailing main proje please wait$(GREEN)"
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@ -I${PWD}/lib/readline/include/
+	@echo "$(GREEN).$(RESET)" | tr -d '\n'
+
+$(NAME): $(SRC) $(OBJ)
+	@$(CC) $(CFLAGS) $(LIBFT) $(SRC) -L${PWD}/readline/lib  -I${PWD}/readline/include/ -lreadline -o $(NAME)
+	@echo "$(GREEN)"
+	@echo "Minishell Compiled"
+	@echo "$(RESET)"
 
 clean:
-	rm -f $(OBJ)
-	@make -C $(LIBFT_DIR) clean
+	@$(RM) $(OBJ)
+	@make -C lib/libft clean
+	@echo "$(CYAN)Object files removed$(RESET)"
 
 fclean: clean
-	rm -f $(NAME)
-	rm -rf $(LIB_BUILD_DIR)
-	@make -C $(LIBFT_DIR) fclean
+	@$(RM) $(NAME)
+	@make -C lib/libft fclean
+	@rm -rf readline
+	@rm -rf readline-8.2 readline-8.2.tar.gz
+	@echo "$(CYAN)Readline files removed$(RESET)"
+	@clear
 
 re: fclean all
-
-.PHONY: re fclean clean all libft
+.PHONY: all clean fclean re

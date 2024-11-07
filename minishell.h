@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: halozdem <halozdem@student.42.fr>          +#+  +:+       +#+        */
+/*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 13:38:02 by halozdem          #+#    #+#             */
-/*   Updated: 2024/11/02 14:53:17 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/11/07 19:55:47 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,13 +18,17 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <readline/readline.h>
-#include <readline/history.h>
+# include <readline/readline.h>
+# include <readline/history.h>
 #include <unistd.h>
 #include "lib/libft/libft.h"
 #include <stdbool.h>
 #include <limits.h>
 #include <fcntl.h>  // Dosya modları ve open() için gerekli
+#include <signal.h>
+# include "termios.h"
+# include "termcap.h"
+# include "sys/wait.h"
 
 // typedef struct s_redirection
 // {
@@ -128,7 +132,7 @@ struct s_redir
     int     in_file;
     int     out_file;
     char    **files;
-    char    *eof;
+    char    **eof;
     char    *args;
 };
 
@@ -140,21 +144,28 @@ struct s_job
     t_job   *next_job;
 };
 
+typedef struct s_mshell t_mshell;
+
 struct s_jobs
 {
-    t_type  type;
-    t_job   *job_list;
-    t_env   *env;  // t_env * olarak güncellendi
-    int     len;
-    int     active_pipe[2];
-	int		old_pipe[2];
+    t_mshell    *mshell;
+    t_type      type;
+    t_job       *job_list;
+    t_env       *env;  // t_env * olarak güncellendi
+    int         len;
+    int         active_pipe[2];
+	int		    old_pipe[2];
 };
 
-typedef struct s_mshell
+typedef struct termios t_termios;
+
+struct s_mshell
 {
-    t_jobs  *jobs;
-    char    **success_arr;
-}   t_mshell;
+    t_jobs      *jobs;
+    t_termios   termios;
+    int         status;
+    char        **success_arr;
+};
 
 
 void	handle_quotes(t_split *s, char *input);
@@ -191,25 +202,25 @@ t_env	*envfunc2(char **env);
 void	process_key(char **input_ptr, t_env *env, int *i, bool in_single_quotes);
 
 void	check_quotes(char c, bool *sq, bool *dq);
+void	replace_dollar_with_value_or_remove(char **input, char *key,
+			char *value, int start, int end, bool needs_quotes);
 char	*get_env_value(t_env *env, char *key);
-bool	contains_special_operators(char *key);
+bool contains_special_operators(char *key);
 void	process_key(char **input_ptr, t_env *env, int *i, bool in_single_quotes);
-void	remove_dollar(char **input, char *value, int start, int end);
-void	update_quote_states(char c, bool *in_single_quotes,
-		bool *in_double_quotes);
-char	*extract_key(char *input, int *i);
-int	calculate_key_length(char *input, int *i, t_env *env);
-int	update_total_length(char *input, t_env *env);
-int	handle_dollar_replacement(char *input, char *new_input, t_env *env,
-		int *index);
-void	construct_new_input(char *input, char *new_input, t_env *env);
-void	get_dollar(char **input_ptr, t_env *env);
-
-
+void    get_dollar(char **input_ptr, t_jobs *jobs);
 
 char **env_to_double_pointer(t_env *env_list);
-char	executor(t_jobs *jobs);
+char	executor(t_mshell *mshell);
 char **str_arr_realloc(char **str_arr, char *element);
 char	*find_path(char *path, char *cmd);
+char	ctrl_builtins(t_jobs *jobs, t_job *job);
+char	env_add(t_env *env, char *key, char *value);
+char	cd(char *path);
+void	echo(char **args);
+void	env(t_env *env);
+void	exit_d(char **args);
+char	export(t_env *env, char *args);
+char	pwd(void);
+// char	unset(t_env **env, char *key);
 
 #endif

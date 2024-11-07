@@ -8,14 +8,14 @@
 
 void add_job_to_jobs(t_jobs *jobs, t_job *new_job)
 {
+    t_job *current;
+
     // printf("Adding job to jobs list...\n");
     if (!jobs->job_list)
-    {
         jobs->job_list = new_job;
-    }
     else
     {
-        t_job *current = jobs->job_list;
+        current = jobs->job_list;
         while (current->next_job)
             current = current->next_job;
         current->next_job = new_job;
@@ -54,6 +54,14 @@ void fill_jobs_from_tokens(t_mshell *shell, char **tokens)
         }
 
         current_job->cmd = ft_strdup(tokens[i++]);
+        current_job->redir = ft_calloc(1, sizeof(t_redir));
+        if (!current_job->redir)
+        {
+            free(current_job->args);
+            free(current_job);
+            printf("Memory allocation failed for redirection\n");
+            return;
+        }
         // printf("Command set: %s\n", current_job->cmd);
 
         int arg_count = 0;
@@ -80,15 +88,6 @@ void fill_jobs_from_tokens(t_mshell *shell, char **tokens)
             // printf("Argument added: %s\n", tokens[k]);
         }
         current_job->args[j] = NULL;
-
-        current_job->redir = malloc(sizeof(t_redir));
-        if (!current_job->redir)
-        {
-            free(current_job->args);
-            free(current_job);
-            printf("Memory allocation failed for redirection\n");
-            return;
-        }
 
         current_job->redir->in_file = -1;
         current_job->redir->out_file = -1;
@@ -120,8 +119,8 @@ void fill_jobs_from_tokens(t_mshell *shell, char **tokens)
                 i++;
                 if (tokens[i])
                 {
-                    current_job->redir->eof = ft_strdup(tokens[i]);
-                    // printf("Heredoc EOF set: %s\n", tokens[i]);
+                    current_job->redir->eof = str_arr_realloc(current_job->redir->eof, ft_strdup(tokens[i]));
+                    //printf("Heredoc EOF set: %s\n", tokens[i]);
                 }
             }
             // printf("Processing redirection: %s\n", tokens[i]);
@@ -166,15 +165,6 @@ void fill_jobs_from_tokens(t_mshell *shell, char **tokens)
         add_job_to_jobs(shell->jobs, current_job);
     }
 }
-
-
-
-
-
-
-
-
-
 
 
 // #include <stdio.h>
@@ -287,7 +277,73 @@ void fill_jobs_from_tokens(t_mshell *shell, char **tokens)
 //     printf("Env struct: %p\n", shell->env);  // Assuming env will be printed elsewhere
 // }
 
+static void	ctrl_output(t_mshell *mshell, char state)
+{
+	if (state == 1)
+	{
+		tcgetattr(STDIN_FILENO, &mshell->termios);
+		tcsetattr(STDIN_FILENO, TCSAFLUSH, &mshell->termios);
+		return ;
+	}
+	else
+	{
+		tcgetattr(STDIN_FILENO, &mshell->termios);
+		mshell->termios.c_lflag &= ~ECHOCTL;
+		tcsetattr(STDIN_FILENO, TCSAFLUSH, &mshell->termios);
+		mshell->termios.c_lflag |= ECHOCTL;
+	}
+}
 
+
+
+static void	reset_prompt(int signal)
+{
+	(void)signal;
+	write(1, "\n", 1);
+	rl_replace_line("", 0);
+	rl_on_new_line();
+	rl_redisplay();
+}
+
+static void	reset_prompt_exec(int signal)
+{
+	(void)signal;
+	write(1, "\n", 1);
+}
+
+void	signal_handle_general(t_mshell *mshell)
+{
+	signal(SIGQUIT, &reset_prompt);
+	signal(SIGINT, &reset_prompt);
+	ctrl_output(mshell, 1);
+}
+
+void	signal_handle_exec(t_mshell *mshell)
+{
+	signal(SIGQUIT, &reset_prompt);
+	signal(SIGINT, &reset_prompt_exec);
+	ctrl_output(mshell, 0);
+}
+
+char number_of_quote(char *input)
+{
+    char    state;
+    int     i;
+
+    state = 0;
+    i = 0;
+    while (input[i])
+    {
+        if (!state && !ft_strchr(QUOTES, input[i]))
+            state = input[i];
+        else if (state && !ft_strchr(QUOTES, input[i]))
+            state = 0;
+        i++;
+    }
+    if (state)
+        return (EXIT_FAILURE);
+    return (EXIT_SUCCESS);
+}
 
 int main(int argc, char **argv, char **env)
 {
@@ -303,24 +359,28 @@ int main(int argc, char **argv, char **env)
     // env'i t_env structına dönüştürme
     env_list = envfunc2(env);
     mshell.jobs = ft_calloc(1, sizeof(t_jobs));
+    mshell.jobs->mshell = &mshell;
     mshell.jobs->env = env_list;
     while (1)
     {
         input = readline("minishell> ");
         if (!input)
-            break;
+            break ;
+        if (!number_of_quote(input))
+        {
+            mshell.status = 2;
+            continue ;// error fd = 2
+        }
         add_history(input);
-        get_dollar(&input, env_list);
+        get_dollar(&input, mshell.jobs);
         cmd = get_token(input);
-        int g = -1;
-        while (cmd[++g])
-            printf("%s\n", cmd[g]);
-
+        //int g = -1;
+        // while (cmd[++g])
+        //     printf("%s\n", cmd[g]);
         fill_jobs_from_tokens(&mshell, cmd);
-        executor(mshell.jobs);
+        executor(&mshell);
 
         free(input);
     }
-
     return 0;
 }

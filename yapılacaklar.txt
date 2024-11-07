@@ -9,3 +9,15 @@ sinyaller eklenecek
 
 $?
 
+cat < main.c << eof > test.txt
+	bash'te çalıştırdığında,
+	main.c'nin içeriğini kopyalamayıp eof'a kadar terminaldeki girdilerini alıp test.txt'e yazdırıyor
+
+	minishell'de çalıştırdığında,
+	main.c'nin her satırına '>' koyup test.txt'e yazdırıyor
+
+
+
+
+07 kasım 2024
+statuslar öncelikli halledilecek, heredoc hataları statuslerden sonra düzeltilecek
