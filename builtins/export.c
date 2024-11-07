@@ -1,6 +1,6 @@
 #include "../minishell.h"
 
-char	export(t_env *env, char *args)
+char	export(t_env *env, t_mshell *mshell, char *args)
 {
 	int	i;
 	char *key;
@@ -12,6 +12,11 @@ char	export(t_env *env, char *args)
 		i = 0;
 		while (args[i] != '=')
 			i++;
+		if (args[i - 1] != '=')
+		{
+			printf("not a valid identifier\n");
+			mshell->status = 1;
+		}
 		key = ft_substr(args, 0, i);
 		value = ft_substr(args, i + 1, ft_strlen(args) - i);
 		new = (t_env *)malloc(sizeof(t_env));

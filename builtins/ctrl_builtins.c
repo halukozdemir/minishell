@@ -16,6 +16,6 @@ char	ctrl_builtins(t_jobs *jobs, t_job *job)
 	//else if (!ft_strncmp(job->args[0], "unset", 5) && ft_strlen(job->args[0]) == 5)
 	//	return (unset(&jobs->env, ));
 	else if (!ft_strncmp(job->args[0], "export", 6) && ft_strlen(job->args[0]) == 6)
-		return (export(jobs->env, job->args[1]));
+		return (export(jobs->env, jobs->mshell, job->args[1]));
 	return (-1);
 }

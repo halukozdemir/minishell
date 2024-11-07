@@ -327,20 +327,30 @@ void	signal_handle_exec(t_mshell *mshell)
 
 char number_of_quote(char *input)
 {
-    char    state;
+    char    quote_type;
+    bool    in_quote;
     int     i;
 
-    state = 0;
     i = 0;
+    in_quote = false;
     while (input[i])
     {
-        if (!state && !ft_strchr(QUOTES, input[i]))
-            state = input[i];
-        else if (state && !ft_strchr(QUOTES, input[i]))
-            state = 0;
+        if (ft_strchr(QUOTES, input[i]))
+        {
+            if (!in_quote)
+            {
+            quote_type = input[i];
+            in_quote = !in_quote;
+            }
+            else
+            {
+                if (input[i] == quote_type)
+                    in_quote = !in_quote;
+            }
+        }
         i++;
     }
-    if (state)
+    if (in_quote)
         return (EXIT_FAILURE);
     return (EXIT_SUCCESS);
 }
@@ -355,7 +365,7 @@ int main(int argc, char **argv, char **env)
     (void)argv;
     if (argc != 1)
         return 1;
-
+    mshell.status = 0;// struct initleme işlemi başta yapılcak
     // env'i t_env structına dönüştürme
     env_list = envfunc2(env);
     mshell.jobs = ft_calloc(1, sizeof(t_jobs));
@@ -366,15 +376,16 @@ int main(int argc, char **argv, char **env)
         input = readline("minishell> ");
         if (!input)
             break ;
-        if (!number_of_quote(input))
+        if (number_of_quote(input))
         {
             mshell.status = 2;
             continue ;// error fd = 2
         }
+
         add_history(input);
         get_dollar(&input, mshell.jobs);
         cmd = get_token(input);
-        //int g = -1;
+        // int g = -1;
         // while (cmd[++g])
         //     printf("%s\n", cmd[g]);
         fill_jobs_from_tokens(&mshell, cmd);

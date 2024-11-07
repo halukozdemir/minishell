@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
+/*   By: halozdem <halozdem@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 13:38:02 by halozdem          #+#    #+#             */
-/*   Updated: 2024/11/07 19:55:47 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/11/08 01:42:26 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -219,7 +219,7 @@ char	cd(char *path);
 void	echo(char **args);
 void	env(t_env *env);
 void	exit_d(char **args);
-char	export(t_env *env, char *args);
+char	export(t_env *env, t_mshell *mshell, char *args);
 char	pwd(void);
 // char	unset(t_env **env, char *key);
 
