@@ -36,35 +36,39 @@ char	export_error(char *args, const char *message, t_mshell *mshell)
 	return (EXIT_FAILURE);
 }
 
-char	export(t_env *env, t_mshell *mshell, char *args)
+char	export(t_env	*env, t_mshell *mshell, char **args)
 {
 	char	*key;
 	char	*value;
 	t_env	*new;
 	t_env	*tmp;
 	int		i;
+	int		j;
 
-	if (args)
-	{
-		i = 0;
-		while (args[i] && args[i] != '=')
-			i++;
-		if (args[i] != '=')
+	j = 0;
+	i = 1;
+	if (args[i])
+		while (args[i])
 		{
-			if (is_alnum_or_underscore(args, 1))
-				return (export_error(args, "not a valid identifier", mshell));
+
+			while (args[i][j] && args[i][j] != '=')
+				j++;
+			key = ft_substr(args[i], 0, j);
+			if (is_alnum_or_underscore(key, 0))
+				return (export_error(args[i], "not a valid identifier", mshell));
+			value = ft_substr(args[i], j + 1, ft_strlen(args[i]) - j);
+			new = (t_env *)malloc(sizeof(t_env));
+			new->key = ft_strdup(key);
+			if (value)
+				new->value = ft_strdup(value);
+			else
+				new->value = ft_strdup("");
+			lstadd_back2(&env, new);
+			free(key);
+			free(value);
+			i++;
+			j = 0;
 		}
-		key = ft_substr(args, 0, i);
-		if (is_alnum_or_underscore(key, 0))
-			export_error(args, "not an identifier", mshell);
-		if (!args[i + 1])
-			export_error(args, "not a valid identifier", mshell);
-		value = ft_substr(args, i + 1, ft_strlen(args) - i);
-		new = (t_env *)malloc(sizeof(t_env));
-		new->key = ft_strdup(key);
-		new->value = ft_strdup(value);
-		lstadd_back2(&env, new);
-	}
 	else
 	{
 		tmp = env;

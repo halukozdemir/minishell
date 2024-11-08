@@ -366,6 +366,7 @@ int main(int argc, char **argv, char **env)
     if (argc != 1)
         return 1;
     mshell.status = 0;// struct initleme işlemi başta yapılcak
+    mshell.is_exit = 0;
     // env'i t_env structına dönüştürme
     env_list = envfunc2(env);
     mshell.jobs = ft_calloc(1, sizeof(t_jobs));
@@ -381,17 +382,12 @@ int main(int argc, char **argv, char **env)
             mshell.status = 2;
             continue ;// error fd = 2
         }
-
         add_history(input);
         get_dollar(&input, mshell.jobs);
         cmd = get_token(input);
-        // int g = -1;
-        // while (cmd[++g])
-        //     printf("%s\n", cmd[g]);
         fill_jobs_from_tokens(&mshell, cmd);
         executor(&mshell);
-
         free(input);
     }
-    return 0;
+    return (0);
 }

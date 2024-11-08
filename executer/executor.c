@@ -147,7 +147,6 @@ static void exec_child(int i, t_jobs *jobs, char **envp)
         temp_job = temp_job->next_job;
         i--;
     }
-    // Redirect işlemlerini yap
     handle_redirects(temp_job->redir);
     if (ctrl_builtins(jobs, temp_job) == -1)
     {

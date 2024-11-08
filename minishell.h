@@ -6,7 +6,7 @@
 /*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 13:38:02 by halozdem          #+#    #+#             */
-/*   Updated: 2024/11/08 17:49:33 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/11/08 19:09:31 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -164,6 +164,7 @@ struct s_mshell
     t_jobs      *jobs;
     t_termios   termios;
     int         status;
+    char        is_exit;
     char        **success_arr;
 };
 
@@ -205,7 +206,7 @@ void	check_quotes(char c, bool *sq, bool *dq);
 void	replace_dollar_with_value_or_remove(char **input, char *key,
 			char *value, int start, int end, bool needs_quotes);
 char	*get_env_value(t_env *env, char *key);
-bool contains_special_operators(char *key);
+bool    contains_special_operators(char *key);
 void	process_key(char **input_ptr, t_env *env, int *i, bool in_single_quotes);
 void    get_dollar(char **input_ptr, t_jobs *jobs);
 
@@ -214,13 +215,12 @@ char	executor(t_mshell *mshell);
 char **str_arr_realloc(char **str_arr, char *element);
 char	*find_path(char *path, char *cmd);
 char	ctrl_builtins(t_jobs *jobs, t_job *job);
-char	env_add(t_env *env, char *key, char *value);
-char	cd(char *path);
+char	cd(t_mshell *mshell,char *path);
 void	echo(char **args);
 void	env(t_env *env);
-void	exit_d(char **args);
-char	export(t_env *env, t_mshell *mshell, char *args);
+void	exit_d(t_mshell *mshell, char **args);
+char	export(t_env *env, t_mshell *mshell, char **args);
 char	pwd(void);
-// char	unset(t_env **env, char *key);
+void	unset(t_env *env, char **args);
 
 #endif
