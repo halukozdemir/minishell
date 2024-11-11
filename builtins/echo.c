@@ -1,6 +1,6 @@
 #include "../minishell.h"
 
-void	echo(char **args)
+void	echo(t_job *job)
 {
 	int	i;
 	int	j;
@@ -11,37 +11,38 @@ void	echo(char **args)
 	newline = 1;
 	in_quote = false;
 	i = 1;
-	if (args[1] && ft_strncmp(args[1], "-n", 2) == 0 && ft_strlen(args[1]) == 2)
+	if (job->args[1] && ft_strncmp(job->args[1], "-n", 2) == 0
+		&& ft_strlen(job->args[1]) == 2)
 	{
 		newline = 0;
 		i++;
 	}
-	while (args[i])
+	while (job->args[i])
 	{
 		j = 0;
-		while (args[i][j])
+		while (job->args[i][j])
 		{
-			if (ft_strchr(QUOTES, args[i][j]))
+			if (ft_strchr(QUOTES, job->args[i][j]))
 			{
 				if (!in_quote)
 				{
-					quote_type = args[i][j];
+					quote_type = job->args[i][j];
 					in_quote = !in_quote;
 				}
 				else
 				{
-					if (args[i][j] == quote_type)
+					if (job->args[i][j] == quote_type)
 						in_quote = !in_quote;
 				}
 			}
-			if (args[i][j] != quote_type)
-				printf("%c", args[i][j]);
+			if (job->args[i][j] != quote_type)
+				write(1, &job->args[i][j], 1);
 			j++;
 		}
-		if (args[i + 1])
-			printf(" ");
+		if (job->args[i + 1])
+			write(1, " ", 1);
 		i++;
 	}
 	if (newline)
-		printf("\n");
+		write(1, "\n", 1);
 }

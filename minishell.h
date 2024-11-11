@@ -131,7 +131,8 @@ typedef enum e_bool
 {
     NONE_BOOL,
     OUT,
-	APPEND
+	APPEND,
+    HDOC// parser'a bak
 }   t_bool;
 
 struct s_redir
@@ -216,7 +217,6 @@ void	process_key(char **input_ptr, t_env *env, int *i, bool in_single_quotes);
 void	check_quotes(char c, bool *sq, bool *dq);
 void	replace_dollar_with_value_or_remove(char **input, char *value, int start, int end);
 char	*get_env_value(t_env *env, char *key);
-bool    contains_special_operators(char *key);
 void	process_key(char **input_ptr, t_env *env, int *i, bool in_single_quotes);
 void    get_dollar(char **input_ptr, t_jobs *jobs);
 
@@ -232,7 +232,7 @@ char	*find_path(char *path, char *cmd);
 void	is_builtin(t_job *job);
 char	ctrl_builtins(t_jobs *jobs, t_job *job);
 char	cd(t_mshell *mshell,char *path);
-void	echo(char **args);
+void	echo(t_job *job);
 void	env(t_env *env);
 void	exit_d(t_mshell *mshell, char **args);
 char	export(t_env *env, t_mshell *mshell, char **args);

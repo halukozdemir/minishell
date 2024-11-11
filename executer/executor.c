@@ -277,48 +277,33 @@ static void	child_process(t_jobs *jobs, t_job *job, char *exec_path)
 {
 	int		len;
 	int 	fd;
-	if (jobs->len == 1)
-		is_builtin(job);
-	if (jobs->len == 1 && job->is_builtin == true)
-	{
-		ctrl_builtins(jobs, job);
-		return ;
-	}
-	if ((job->redir->out_files || job->redir->appends)
-		&& (jobs->len != 1 || job->is_builtin == false))
+
+	fd = 1;
+	if (job->redir->out_files || job->redir->appends)
 	{
 		if (job->redir->appends)
 		{
 			len = str_arr_len(job->redir->appends);
 			create_file_wr_append(job->redir->appends, len);
-			fd = open(job->redir->appends[len - 1], O_CREAT | O_WRONLY | O_APPEND, 0644);
+			job->redir->append_file = open(job->redir->appends[len - 1], O_CREAT | O_WRONLY | O_APPEND, 0644);
+			fd = job->redir->append_file;
 			create_file_wr(job->redir->out_files, str_arr_len(job->redir->out_files));
 		}
-		else
+		else if(job->redir->out_files)
 		{
 			len = str_arr_len(job->redir->out_files);
 			create_file_wr(job->redir->out_files, len);
-			if(job->redir->out_files)
-				fd = open(job->redir->out_files[len - 1], O_CREAT | O_WRONLY, 0644);
+			job->redir->out_file = open(job->redir->out_files[len - 1], O_CREAT | O_WRONLY | O_TRUNC, 0644);
+			fd = job->redir->out_file;
 			create_file_wr_append(job->redir->appends, str_arr_len(job->redir->appends));
 		}
 		dup2(fd, 1);
 		close(fd);
 	}
-	if (jobs->len != 1)
-		is_builtin(job);
-	if (job->redir->in_files && (jobs->len != 1 || job->is_builtin == false))
+	if (job->redir->in_files)
 		set_input(job);
-	if (job->is_builtin == false)
-	{
-		execve(exec_path, job->args, env_to_double_pointer(jobs->env));
-		perror("exec");
-	}
-	if (job->is_builtin == true && jobs->len != 1)
-	{
-		ctrl_builtins(jobs, job);
-		exit(0);
-	}
+	execve(exec_path, job->args, env_to_double_pointer(jobs->env));
+	perror("exec");
 }
 
 static void	no_pipe(t_jobs *jobs, t_job *job, char *exec_path)
@@ -326,43 +311,35 @@ static void	no_pipe(t_jobs *jobs, t_job *job, char *exec_path)
 	int	len;
 	int	fd;
 
-	job->pid = fork();
-	if (job->pid == 0)
+	is_builtin(job);
+	if (job->is_builtin == false)
 	{
-		//set_signal(CHILD_P);
-		child_process(jobs, job, exec_path);
-		exit(jobs->mshell->status);
+		job->pid = fork();
+		if (job->pid == 0)
+		{
+			//set_signal(CHILD_P);
+			child_process(jobs, job, exec_path);
+			exit(jobs->mshell->status);
+		}
 	}
-	//if (job->redir->out_files[0] || job->redir->appends)
-	if ((job->redir->out_files || job->redir->appends) && jobs->len == 1)
+	if (job->redir->out_files || job->redir->appends)
 	{
-		is_builtin(job);
 		if (job->is_builtin == false)
 			fd = 0;
-		/*
-		len = str_arr_len(job->redir->out_files);
-		create_file_wr_append(job->redir->out_files, len);
-		len = str_arr_len(job->redir->out_files);
-		create_file_wr(job->redir->out_files, len);
-		if (job->redir->appends && job->is_builtin == true)
-			fd = open(job->redir->out_files[len - 1], O_CREAT | O_WRONLY | O_APPEND);
-		else
-			fd = open(job->redir->out_files[len - 1], O_CREAT | O_WRONLY);
-		*/
 		if (job->redir->appends && job->is_builtin == true)
 		{
 			len = str_arr_len(job->redir->appends);
 			create_file_wr_append(job->redir->appends, len);
-			if(job->redir->out_files)
-				fd = open(job->redir->out_files[len - 1], O_CREAT | O_WRONLY | O_APPEND, 0644);
+			job->redir->append_file = open(job->redir->appends[len - 1], O_CREAT | O_WRONLY | O_APPEND, 0644);
+			fd = job->redir->append_file;
 			create_file_wr(job->redir->out_files, str_arr_len(job->redir->out_files));
 		}
-		else
+		else if (job->redir->out_files && job->is_builtin == true)
 		{
 			len = str_arr_len(job->redir->out_files);
 			create_file_wr(job->redir->out_files, len);
-			if(job->redir->out_files)
-				fd = open(job->redir->out_files[len - 1], O_CREAT | O_WRONLY, 0644);
+			job->redir->out_file = open(job->redir->out_files[len - 1], O_CREAT | O_WRONLY | O_TRUNC, 0644);
+			fd = job->redir->out_file;
 			create_file_wr_append(job->redir->appends, str_arr_len(job->redir->appends));
 		}
 		dup2(fd, 1);
@@ -372,13 +349,12 @@ static void	no_pipe(t_jobs *jobs, t_job *job, char *exec_path)
 			jobs->mshell->status = 1;
 			return ;
 		}
-		//is_builtin(job);
-		/*
+	}
 		if (job->is_builtin == true)
 		{
-			if (job->redir->in_files[0])
+			if (job->redir->in_files)
 			{
-				set_input(jobs, job);
+				set_input(job);
 				if (job->redir->in_file == -1)
 				{
 					jobs->mshell->status = 1;
@@ -388,24 +364,6 @@ static void	no_pipe(t_jobs *jobs, t_job *job, char *exec_path)
 			ctrl_builtins(jobs, job);
 			return ;
 		}
-		*/
-		//if (job->redir->in_files[0] && job->is_builtin == true)
-		if (job->redir->in_files && jobs->len == 1 && job->is_builtin == true)
-		{
-			set_input(job);
-			if (job->redir->in_file == -1)
-			{
-				jobs->mshell->status = 1;
-				return ;
-			}
-		}
-		//if (job->is_builtin == ture)
-		if (job->is_builtin == true && jobs->len == 1)
-		{
-			ctrl_builtins(jobs, job);
-			return ;
-		}
-	}
 }
 
 static void pipe_handle(t_jobs *jobs, t_job *job, char *exec_path)
@@ -468,6 +426,8 @@ char	executor(t_mshell *mshell)
 	close(mshell->backup_fd[1]);
 	temp_status = 0;
 	temp_job = mshell->jobs->job_list;
+	if (mshell->jobs->len == 1 && temp_job->is_builtin == true)
+		return (EXIT_SUCCESS);
 	while (temp_job)
 	{
 		signal_handle_exec(mshell);

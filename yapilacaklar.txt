@@ -25,10 +25,10 @@ statuslar öncelikli halledilecek, heredoc hataları statuslerden sonra düzelti
 exit cikisi.
 $?,
 sinyaller,
-export unset. // char **env freelenmeyecek.
-cd calismiyor.
-echo selam > test1.txt hem test1.txtye hem de terminale yaziyor.
+export unset
+
 input heredoc bash gibi calismiyor ---> cat < test1.txt << selam > test4.txt
+// heredoc ve input sıralamasını düzenle
 
 birden fazla job oldugunda builtin calismiyor?
 env duzeltildikten sonra sunu test et ---> env | cat test1.txt | grep LANG
