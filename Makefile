@@ -69,4 +69,8 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: all clean fclean re
+.: all
+	@echo "$(LIGHT_BLUE)Starting Minishell...$(RESET)"
+	@./$(NAME)
+
+.PHONY: all clean fclean re maker

@@ -3,8 +3,9 @@
 static void	del_node(t_env *node)
 {
 	// printf("prev: %s\n next: %s\n current: %s\n", node->prev->key, node->next->key, node->key);
+	if (node->next)
+		node->next->prev = node->prev;
 	node->prev->next = node->next;
-	node->next->prev = node->prev;
 	// printf("next: %s\n prev: %s\n current: %s\n", node->prev->next->key, node->next->prev->key, node->key);
 	free(node->key);
 	free(node->value);
@@ -35,10 +36,12 @@ void	unset(t_env *env, char **args)
 {
 	int	i;
 
-	i = 0;
+	i = 1;
 	while (args[i])
 	{
 		del_key(env, args[i]);
 		i++;
 	}
+	// printf("wqdsad\n");
+
 }

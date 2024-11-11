@@ -364,6 +364,7 @@ static void	no_pipe(t_jobs *jobs, t_job *job, char *exec_path)
 			ctrl_builtins(jobs, job);
 			return ;
 		}
+
 }
 
 static void pipe_handle(t_jobs *jobs, t_job *job, char *exec_path)
