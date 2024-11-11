@@ -5,7 +5,8 @@ static void	del_node(t_env *node)
 	// printf("prev: %s\n next: %s\n current: %s\n", node->prev->key, node->next->key, node->key);
 	if (node->next)
 		node->next->prev = node->prev;
-	node->prev->next = node->next;
+	if (node->prev)
+		node->prev->next = node->next;
 	// printf("next: %s\n prev: %s\n current: %s\n", node->prev->next->key, node->next->prev->key, node->key);
 	free(node->key);
 	free(node->value);
