@@ -1,0 +1,36 @@
+heredoctan sonra genişletme yapılmayacak (dollarla alakalı)
+heredoc yazılacak
+redir'in daha fazla testi yapılması lazım
+
+builtsin'ler yazılacak (exportta ?'i ile başlayan key olamaz)
+
+
+sinyaller eklenecek
+
+$?
+
+cat < main.c << eof > test.txt
+	bash'te çalıştırdığında,
+	main.c'nin içeriğini kopyalamayıp eof'a kadar terminaldeki girdilerini alıp test.txt'e yazdırıyor
+
+	minishell'de çalıştırdığında,
+	main.c'nin her satırına '>' koyup test.txt'e yazdırıyor
+
+
+07 kasım 2024
+statuslar öncelikli halledilecek, heredoc hataları statuslerden sonra düzeltilecek
+
+10 kasim 2024
+
+exit cikisi.
+$?,
+sinyaller,
+export unset. // char **env freelenmeyecek.
+cd calismiyor.
+echo selam > test1.txt hem test1.txtye hem de terminale yaziyor.
+input heredoc bash gibi calismiyor ---> cat < test1.txt << selam > test4.txt
+
+birden fazla job oldugunda builtin calismiyor?
+env duzeltildikten sonra sunu test et ---> env | cat test1.txt | grep LANG
+
+go crazy testlerinde seg yememek yeterli.

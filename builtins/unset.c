@@ -16,11 +16,9 @@ static void	del_key(t_env *env, char *key)
 	t_env	*temp;
 	int		len_key;
 	int		len;
-	int		i;
 
 	temp = env;
 	len_key = ft_strlen(key);
-	i = 0;
 	while (temp)
 	{
 		len = ft_strlen(temp->key);

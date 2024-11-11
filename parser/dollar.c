@@ -8,8 +8,7 @@ void	check_quotes(char c, bool *sq, bool *dq)
 		*dq = !*dq;
 }
 
-void	replace_dollar_with_value_or_remove(char **input, char *key,
-			char *value, int start, int end, bool needs_quotes)
+void	replace_dollar_with_value_or_remove(char **input, char *value, int start, int end)
 {
 	char	*new_input;
 	int		new_len;
@@ -64,12 +63,12 @@ void	process_key(char **input_ptr, t_env *env, int *i, bool in_single_quotes)
 
 	if (!value && ft_strlen(key) > 0)
 	{
-		replace_dollar_with_value_or_remove(input_ptr, "", NULL, *i - 1, j, false);
+		replace_dollar_with_value_or_remove(input_ptr, NULL, *i - 1, j);
 		*i = *i - 1;
 	}
 	else if (value)
 	{
-		replace_dollar_with_value_or_remove(input_ptr, key, value, *i - 1, j, false);
+		replace_dollar_with_value_or_remove(input_ptr, value, *i - 1, j);
 		*i = *i + ft_strlen(value) - 1;
 	}
 

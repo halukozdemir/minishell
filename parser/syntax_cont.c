@@ -49,6 +49,7 @@ int	redir_cont2(char *input, int i, char c)
 	char const	*quotes = "'\"";
 	char    quote_type;
 
+	quote_type = 0;
 	in_quote = false;
 	i++;
 	while (input[i] == ' ' || input[i] == '\t' || input[i] == '\v'
@@ -78,10 +79,9 @@ int	redir_cont(char *input)
 	bool	in_quote;
 	char const	*quotes = "'\"";
 	char    quote_type;
-	int space;
 	int j;
 
-	space = 0;
+	quote_type = 0;
 	in_quote = false;
 	i = 0;
 	while (input[i] == ' ' || input[i] == '\t' || input[i] == '\v'
@@ -154,7 +154,6 @@ int	redir_cont(char *input)
 				i++;
 			if (input[i] && input[i] == '<' && input[i+1] == '\0')
 				return 1;
-			space = 0;
 			redir_cont2(input, i, '>');
 		}
 		i++;

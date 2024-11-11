@@ -4,7 +4,6 @@ char **env_to_double_pointer(t_env *env_list)
 {
     int count = 0;
     t_env *temp = env_list;
-
     // Önce kaç tane env değişkeni olduğunu sayalım
     while (temp)
     {
@@ -18,12 +17,17 @@ char **env_to_double_pointer(t_env *env_list)
         return NULL;
 
     temp = env_list;
+	char	*temp1;
+	char	*temp2;
     int i = 0;
     while (i < count)
     {
-        // "key=value" formatında birleştir
-        int len = ft_strlen(temp->key) + ft_strlen(temp->value) + 2; // +1 for '=' and +1 for '\0'
-        env_array[i] = malloc(len);
+		temp1 = ft_strdup(temp->key);
+		temp2 = temp1;
+		temp1 = ft_strjoin(temp1, "=");
+		free(temp2);
+		env_array[i] = ft_strjoin(temp1, temp->value);
+		free(temp1);
         if (!env_array[i])
         {
             // Bellek tahsis hatası durumunda, daha önce ayrılmış bellekleri serbest bırak
@@ -44,63 +48,64 @@ char **env_to_double_pointer(t_env *env_list)
     return env_array;
 }
 
-static void	close_pipe(int pipes[2])
+char	heredoc(t_jobs *jobs, t_job *job)
 {
-	close(pipes[0]);
-	close(pipes[1]);
-}
-
-static char	*child_hdoc(int fd[2], char *eof)
-{
-    char    *arg;
 	char	*buffer;
+	int		temp_status;
+	int		pipe_fd[2];
 	int		len1;
 	int		len2;
-
-	close(fd[0]);
-	buffer = readline(">");
-    len1 = ft_strlen(buffer);
-	len2 = ft_strlen(eof);
-	while (ft_strncmp(buffer, eof, len1) || len1 != len2)
-	{
-        arg = ft_strjoin(arg, buffer);
-        free(buffer);
-        buffer = readline(">");
-		len1 = ft_strlen(buffer);
-	}
-	close(fd[1]);
-    return (arg);
-}
-
-char	*heredoc(char **eof)
-{
-    char    *arg;
-	int		fd[2];
     int     i;
-	pid_t	pid;
 
-	if (pipe(fd) == -1)
-		return (NULL);
-	pid = fork();
-	if (pid < 0)
-		return (NULL);
-    if (pid == 0)
+	if (pipe(pipe_fd) == -1)
+		return (EXIT_FAILURE);
+	job->pid = fork();
+    if (job->pid == 0)
     {
-        i = -1;
-        while (eof[++i])
-            arg = ft_strjoin(arg, child_hdoc(fd, eof[i]));
+		//set_signal(HEREDOC_P);
+		dup2(jobs->mshell->backup_fd[0], 0);
+        i = 0;
+        while (job->redir->eof[i])
+		{
+			/*
+			if (jobs->mshell->status == 999)
+			{
+				free(buffer);
+				exit(130);
+			}
+			*/
+			buffer = readline(">");
+			/*
+			if (!buffer)
+			{
+				jobs->mshell->status = 130;
+				exit(130);
+			}
+			if (jobs->mshell->status == 999)
+				continue ;
+			*/
+			len1 = ft_strlen(buffer);
+			len2 = ft_strlen(job->redir->eof[i]);
+			if (buffer && !job->redir->eof[i + 1] && !(!ft_strncmp(buffer, job->redir->eof[i], len1) && len1 == len2))
+				ft_putendl_fd(buffer, pipe_fd[1]);
+			if (!ft_strncmp(buffer, job->redir->eof[i], len1) && len1 == len2)
+				i++;
+			free(buffer);
+		}
         exit(0);
     }
-	else
-    {
-        close(fd[1]);
-    	wait(NULL);
-	    dup2(fd[0], 0);
-	    close(fd[0]);
-	}
-    return (arg);
+    close(pipe_fd[1]);
+	dup2(pipe_fd[0], 0);
+	close(pipe_fd[0]);
+    waitpid(job->pid, &temp_status, 0);
+	if (WIFEXITED(temp_status))
+		jobs->mshell->status = WEXITSTATUS(temp_status);
+	if (jobs->mshell->status == 130)
+		return (EXIT_FAILURE);
+    return (EXIT_SUCCESS);
 }
 
+/*
 static void handle_redirects(t_redir *redir)
 {
     if (redir->in_file != -1)
@@ -126,7 +131,362 @@ static void handle_redirects(t_redir *redir)
         redir->args = heredoc(redir->eof);
     //write(redir->out_file, redir->args, ft_strlen(redir->args));
 }
+*/
 
+static void	create_file_rd(char **files, int len)
+{
+	int	fd;
+	int	i;
+	if(files)
+	{
+		i = 0;
+		while (i < len && files[i])
+		{
+			fd = open(files[i], O_RDONLY , 0644);
+			/*
+			if (fd == -1)
+				continue ;//error
+			*/
+			/*
+			if (fd == -1 && (jobs->len != 1 || job->is_builtin == false))
+				error1;
+			else if (fd == -1 && jobs->len == 1)
+				return (error2);
+			*/
+			close(fd);
+			i++;
+		}
+	}
+}
+
+/*
+static void	create_file_rd_append(char **files, int len)
+{
+	int	fd;
+	int	i;
+
+	i = 0;
+	while (i < len && files[i])
+	{
+		fd = open(files[i], O_CREAT | O_RDONLY |O_APPEND);
+		if (fd == -1)
+			continue ;
+		close(fd);
+		i++;
+	}
+}
+*/
+
+static void	create_file_wr(char **files, int len)
+{
+	int	fd;
+	int	i;
+
+	if(files)
+	{
+		i = 0;
+		while (i < len && files[i])
+		{
+			fd = open(files[i], O_CREAT | O_WRONLY , 0644);
+			if (fd == -1)
+				continue ;
+			close(fd);
+			i++;
+		}
+	}
+}
+
+static void	create_file_wr_append(char **files, int len)
+{
+	int	fd;
+	int	i;
+	if(files)
+	{
+		i = 0;
+		while (i < len && files[i])
+		{
+			fd = open(files[i], O_CREAT | O_WRONLY | O_APPEND, 0644);
+			if (fd == -1)
+				continue ;
+			close(fd);
+			i++;
+		}
+	}
+}
+
+static void	set_input(t_job *job)
+{
+	int	len;
+
+	if (job->redir->in_files)
+	{
+		len = str_arr_len(job->redir->in_files);
+		create_file_rd(job->redir->in_files, len);
+		job->redir->in_file = open(job->redir->in_files[len - 1], O_RDONLY, 0644);
+		dup2(job->redir->in_file, 0);
+		close(job->redir->in_file);
+	}
+}
+
+static void	set_output(t_job *job, int pipe_fd[2])
+{
+	int	len;
+	int	fd;
+
+	close(pipe_fd[0]);
+	if (job->next_job && !job->redir->out_files && !job->redir->appends)
+		dup2(pipe_fd[1], 1);
+	else if (job->redir->out_files || job->redir->appends)
+	{
+		if (job->redir->last == APPEND)
+		{
+			create_file_wr(job->redir->out_files, str_arr_len(job->redir->out_files));
+			len = str_arr_len(job->redir->appends);
+			create_file_wr_append(job->redir->appends, len);
+			if(job->redir->appends)
+				job->redir->append_file = open(job->redir->appends[len - 1], O_CREAT | O_WRONLY | O_APPEND, 0644);
+			/*
+			if (job->redir->append_file == -1 && (jobs->len != 1 || job->is_builtin == false))
+				error1;
+			else if (job->redir->append_file == -1 && jobs->len == 1)
+				return (error2);
+			*/
+			fd = job->redir->append_file;
+		}
+		else
+		{
+			create_file_wr_append(job->redir->appends, str_arr_len(job->redir->appends));
+			len = str_arr_len(job->redir->out_files);
+			create_file_wr(job->redir->out_files, len);
+			if(job->redir->appends)
+				job->redir->out_file = open(job->redir->out_files[len - 1], O_WRONLY | O_APPEND | O_CREAT, 0644);
+			/*
+			if (job->redir->out_file == -1 && (jobs->len != 1 || job->is_builtin == false))
+				error1;
+			else if (job->redir->out_file == -1 && jobs->len == 1)
+				return (error2);
+			*/
+			fd = job->redir->out_file;
+		}
+		dup2(fd, 1);
+		close(fd);
+	}
+}
+
+static void	child_process(t_jobs *jobs, t_job *job, char *exec_path)
+{
+	int		len;
+	int 	fd;
+	if (jobs->len == 1)
+		is_builtin(job);
+	if (jobs->len == 1 && job->is_builtin == true)
+	{
+		ctrl_builtins(jobs, job);
+		return ;
+	}
+	if ((job->redir->out_files || job->redir->appends)
+		&& (jobs->len != 1 || job->is_builtin == false))
+	{
+		if (job->redir->appends)
+		{
+			len = str_arr_len(job->redir->appends);
+			create_file_wr_append(job->redir->appends, len);
+			fd = open(job->redir->appends[len - 1], O_CREAT | O_WRONLY | O_APPEND, 0644);
+			create_file_wr(job->redir->out_files, str_arr_len(job->redir->out_files));
+		}
+		else
+		{
+			len = str_arr_len(job->redir->out_files);
+			create_file_wr(job->redir->out_files, len);
+			if(job->redir->out_files)
+				fd = open(job->redir->out_files[len - 1], O_CREAT | O_WRONLY, 0644);
+			create_file_wr_append(job->redir->appends, str_arr_len(job->redir->appends));
+		}
+		dup2(fd, 1);
+		close(fd);
+	}
+	if (jobs->len != 1)
+		is_builtin(job);
+	if (job->redir->in_files && (jobs->len != 1 || job->is_builtin == false))
+		set_input(job);
+	if (job->is_builtin == false)
+	{
+		execve(exec_path, job->args, env_to_double_pointer(jobs->env));
+		perror("exec");
+	}
+	if (job->is_builtin == true && jobs->len != 1)
+	{
+		ctrl_builtins(jobs, job);
+		exit(0);
+	}
+}
+
+static void	no_pipe(t_jobs *jobs, t_job *job, char *exec_path)
+{
+	int	len;
+	int	fd;
+
+	job->pid = fork();
+	if (job->pid == 0)
+	{
+		//set_signal(CHILD_P);
+		child_process(jobs, job, exec_path);
+		exit(jobs->mshell->status);
+	}
+	//if (job->redir->out_files[0] || job->redir->appends)
+	if ((job->redir->out_files || job->redir->appends) && jobs->len == 1)
+	{
+		is_builtin(job);
+		if (job->is_builtin == false)
+			fd = 0;
+		/*
+		len = str_arr_len(job->redir->out_files);
+		create_file_wr_append(job->redir->out_files, len);
+		len = str_arr_len(job->redir->out_files);
+		create_file_wr(job->redir->out_files, len);
+		if (job->redir->appends && job->is_builtin == true)
+			fd = open(job->redir->out_files[len - 1], O_CREAT | O_WRONLY | O_APPEND);
+		else
+			fd = open(job->redir->out_files[len - 1], O_CREAT | O_WRONLY);
+		*/
+		if (job->redir->appends && job->is_builtin == true)
+		{
+			len = str_arr_len(job->redir->appends);
+			create_file_wr_append(job->redir->appends, len);
+			if(job->redir->out_files)
+				fd = open(job->redir->out_files[len - 1], O_CREAT | O_WRONLY | O_APPEND, 0644);
+			create_file_wr(job->redir->out_files, str_arr_len(job->redir->out_files));
+		}
+		else
+		{
+			len = str_arr_len(job->redir->out_files);
+			create_file_wr(job->redir->out_files, len);
+			if(job->redir->out_files)
+				fd = open(job->redir->out_files[len - 1], O_CREAT | O_WRONLY, 0644);
+			create_file_wr_append(job->redir->appends, str_arr_len(job->redir->appends));
+		}
+		dup2(fd, 1);
+		close(fd);
+		if (fd == -1)
+		{
+			jobs->mshell->status = 1;
+			return ;
+		}
+		//is_builtin(job);
+		/*
+		if (job->is_builtin == true)
+		{
+			if (job->redir->in_files[0])
+			{
+				set_input(jobs, job);
+				if (job->redir->in_file == -1)
+				{
+					jobs->mshell->status = 1;
+					return ;
+				}
+			}
+			ctrl_builtins(jobs, job);
+			return ;
+		}
+		*/
+		//if (job->redir->in_files[0] && job->is_builtin == true)
+		if (job->redir->in_files && jobs->len == 1 && job->is_builtin == true)
+		{
+			set_input(job);
+			if (job->redir->in_file == -1)
+			{
+				jobs->mshell->status = 1;
+				return ;
+			}
+		}
+		//if (job->is_builtin == ture)
+		if (job->is_builtin == true && jobs->len == 1)
+		{
+			ctrl_builtins(jobs, job);
+			return ;
+		}
+	}
+}
+
+static void pipe_handle(t_jobs *jobs, t_job *job, char *exec_path)
+{
+	int	pipe_fd[2];
+
+	if (pipe(pipe_fd) == -1)
+	{
+		perror("pipe");
+		exit(127); // \?
+	}
+	job->pid = fork();
+	if (job->pid == 0)
+	{
+		//set_signal(CHILD_P);
+		close(pipe_fd[0]);
+		set_input(job);
+		set_output(job, pipe_fd);
+		close(pipe_fd[1]);
+		is_builtin(job);
+		if (job->is_builtin == false)
+			execve(exec_path, job->args, env_to_char_array(jobs->env));
+		exit(127);
+	}
+	close(pipe_fd[1]);
+	dup2(pipe_fd[0], 0);
+	close(pipe_fd[0]);
+}
+
+char	executor(t_mshell *mshell)
+{
+	t_job	*temp_job;
+	char	*exec_path;
+	int		temp_status;
+	int		i;
+
+	mshell->backup_fd[0] = dup(STDIN_FILENO);
+	mshell->backup_fd[1] = dup(STDOUT_FILENO);
+	temp_job = mshell->jobs->job_list;
+	while (temp_job)
+	{
+		exec_path = find_path(get_env_value(mshell->jobs->env, "PATH"), temp_job->cmd);
+		if (mshell->jobs->len == 1)
+		{
+			if (temp_job->redir->eof && heredoc(mshell->jobs, temp_job))
+				break ;
+			no_pipe(mshell->jobs, temp_job, exec_path);
+		}
+		else
+		{
+			if (temp_job->redir->eof && heredoc(mshell->jobs, temp_job))
+				break ;
+			pipe_handle(mshell->jobs, temp_job, exec_path);
+		}
+		temp_job = temp_job->next_job;
+	}
+	dup2(mshell->backup_fd[0], 0);
+	close(mshell->backup_fd[0]);
+	dup2(mshell->backup_fd[1], 1);
+	close(mshell->backup_fd[1]);
+	temp_status = 0;
+	temp_job = mshell->jobs->job_list;
+	while (temp_job)
+	{
+		signal_handle_exec(mshell);
+		i = waitpid(temp_job->pid, &temp_status, 0);
+		if (i < 0)
+			continue ;
+		is_builtin(temp_job);
+		if (mshell->jobs->len == 1 && temp_job->is_builtin == true)
+			break ;
+		if (WIFEXITED(temp_status))
+			mshell->status = WEXITSTATUS(temp_status);
+		else if (WIFSIGNALED(temp_status))
+			mshell->status = 128 + WTERMSIG(temp_status);
+		temp_job = temp_job->next_job;
+	}
+	return (EXIT_SUCCESS);
+}
+
+/*
 static void exec_child(int i, t_jobs *jobs, char **envp)
 {
     char    *temp;
@@ -164,8 +524,17 @@ static void exec_child(int i, t_jobs *jobs, char **envp)
 char executor(t_mshell *mshell)
 {
     pid_t   pid;
+    char    state;
     int     i;
 
+    if (mshell->jobs->len == 1)
+    {
+        state = ctrl_builtins(mshell->jobs, mshell->jobs->job_list);
+        if (state == -1)
+            exec_child(0, mshell->jobs, env_to_double_pointer(mshell->jobs->env));
+        else if (state == EXIT_SUCCESS)
+            return (EXIT_SUCCESS);
+    }
     i = -1;
     while (++i < mshell->jobs->len)
     {
@@ -190,3 +559,32 @@ char executor(t_mshell *mshell)
     }
     return (EXIT_SUCCESS);
 }
+
+
+static void	pipe_heredoc(t_jobs *jobs, t_job *job, int fd[2], char **exec_str_arr)
+{
+	int	pipe[2];
+	int	status;
+
+	if (pipe(pipe) == -1)
+	{
+		perror("pipe");
+		exit(127);
+	}
+	job->pid = fork();
+	if (job->pid == 0)
+	{
+		//set_signal(HEREDOC_P);
+		//pheredoc(fd, job, pipe);
+	}
+	close(pipe[1]);
+	dup2(p[0], 0);
+	close(pipe[0]);
+	waitpid(job->pid, &jobs->mshell->status, 0);
+	//if (WIFEXITED(status))
+	//	jobs->mshell->status = WEXITSTATUS(status);
+	//if (jobs->mshell->status == 130)
+	//	freecpointer(run);
+}
+*/
+

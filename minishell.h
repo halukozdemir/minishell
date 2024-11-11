@@ -122,23 +122,35 @@ typedef struct s_redir t_redir;
 
 typedef enum e_type
 {
-    NONE,
+    NONE_TYPE,
     PIPE,
-    EXEC
+	EXEC
 }   t_type;
+
+typedef enum e_bool
+{
+    NONE_BOOL,
+    OUT,
+	APPEND
+}   t_bool;
 
 struct s_redir
 {
     int     in_file;
     int     out_file;
-    char    **files;
+	int		append_file;
+	t_bool	last;
+    char    **in_files;
+	char	**out_files;
+	char	**appends;
     char    **eof;
-    char    *args;
 };
 
 struct s_job
 {
     char    *cmd;
+	bool	is_builtin;
+	pid_t	pid;
     char    **args;
     t_redir *redir;
     t_job   *next_job;
@@ -153,8 +165,6 @@ struct s_jobs
     t_job       *job_list;
     t_env       *env;  // t_env * olarak güncellendi
     int         len;
-    int         active_pipe[2];
-	int		    old_pipe[2];
 };
 
 typedef struct termios t_termios;
@@ -166,6 +176,7 @@ struct s_mshell
     int         status;
     char        is_exit;
     char        **success_arr;
+	int			backup_fd[2];
 };
 
 
@@ -203,17 +214,22 @@ t_env	*envfunc2(char **env);
 void	process_key(char **input_ptr, t_env *env, int *i, bool in_single_quotes);
 
 void	check_quotes(char c, bool *sq, bool *dq);
-void	replace_dollar_with_value_or_remove(char **input, char *key,
-			char *value, int start, int end, bool needs_quotes);
+void	replace_dollar_with_value_or_remove(char **input, char *value, int start, int end);
 char	*get_env_value(t_env *env, char *key);
 bool    contains_special_operators(char *key);
 void	process_key(char **input_ptr, t_env *env, int *i, bool in_single_quotes);
 void    get_dollar(char **input_ptr, t_jobs *jobs);
 
-char **env_to_double_pointer(t_env *env_list);
+void	signal_handle_exec(t_mshell *mshell);
+
+char 	**env_to_double_pointer(t_env *env_list);
+char	heredoc(t_jobs *jobs, t_job *job);
 char	executor(t_mshell *mshell);
-char **str_arr_realloc(char **str_arr, char *element);
+void	free_str_arr(char **str_arr);
+int 	str_arr_len(char **str_arr);
+char 	**str_arr_realloc(char **str_arr, char *element);
 char	*find_path(char *path, char *cmd);
+void	is_builtin(t_job *job);
 char	ctrl_builtins(t_jobs *jobs, t_job *job);
 char	cd(t_mshell *mshell,char *path);
 void	echo(char **args);

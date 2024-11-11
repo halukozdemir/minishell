@@ -53,7 +53,7 @@ char	**get_token(char *input)
 	char			**str;
 
 	word_count = word_counter(input);
-	if (word_count == -1)
+	if ((int) word_count == -1)
 		return (NULL);
 	str = (char **)malloc(sizeof(char *) * (word_count + 1));
 	if (!str)
@@ -61,3 +61,4 @@ char	**get_token(char *input)
 	str = split_words(input, str, word_count);
 	return (str);
 }
+

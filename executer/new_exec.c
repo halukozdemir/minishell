@@ -1,5 +1,31 @@
 #include "../minishell.h"
 
+void	free_str_arr(char **str_arr)
+{
+	int	i;
+
+	i = 0;
+	while (str_arr[i])
+	{
+		free(str_arr[i]);
+		i++;
+	}
+	free(str_arr);
+	str_arr = NULL;
+}
+
+int str_arr_len(char **str_arr)
+{
+	int	i;
+
+	if (!str_arr || !*str_arr)
+		return (0);
+	i = 0;
+	while (str_arr[i])
+		i++;
+	return (i);
+}
+
 char **str_arr_realloc(char **str_arr, char *element)
 {
 	char **rtrn;
@@ -30,14 +56,17 @@ char	*find_path(char *path, char *cmd)
 	char	*temp;
 	char	*temp2;
 	int		i;
+
 	splitted_path = ft_split(path, ':');
 	i = 0;
 	while (splitted_path[i])
 	{
+		if (!access(cmd, X_OK))
+			return (free_str_arr(splitted_path), cmd);
 		temp = ft_strjoin(splitted_path[i], "/");
 		temp2 = ft_strjoin(temp, cmd);
 		if (!access(temp2, X_OK))
-			return ((free_env_array(splitted_path)), temp2);//splitted pathi freeleyecek
+			return ((free_str_arr(splitted_path)), temp2);
 		free(temp);
 		free(temp2);
 		i++;

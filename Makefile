@@ -2,7 +2,7 @@ NAME = minishell
 SRC = main.c executer/run_env.c executer/run_env2.c executer/executor.c executer/new_exec.c parser/dollar.c parser/parser_utils_2.c parser/parser_utils.c parser/parser.c parser/syntax_cont.c parser/syntax_cont2.c builtins/cd.c builtins/ctrl_builtins.c builtins/echo.c builtins/env.c builtins/exit.c builtins/export.c builtins/unset.c builtins/pwd.c
 
 CC = gcc
-#CFLAGS = -Wall -Werror -Wextra
+CFLAGS = -Wall -Werror -Wextra
 RM = rm -rf
 LIBFT = lib/libft/libft.a
 READLINE = readline
@@ -27,6 +27,7 @@ GREY=\033[90m
 LIGHT_GREY=\033[37m
 
 all : $(READLINE) $(LIBFT) $(NAME)
+	@make clean
 
 $(READLINE):
 	@echo "$(YELLOW)Compiling readline please wait$(GREEN)"
@@ -35,8 +36,6 @@ $(READLINE):
 	@cd readline-8.2 && ./configure --prefix=${PWD}/readline 2>&1 | awk '{printf "."; fflush()}'
 	@cd readline-8.2 && make install 2>&1 | awk '{printf "."; fflush()}'
 	@echo "$(RESET)"
-
-
 
 $(LIBFT):
 	@echo "$(YELLOW)Compailing include please wait$(GREEN)"
@@ -58,6 +57,7 @@ clean:
 	@$(RM) $(OBJ)
 	@make -C lib/libft clean
 	@echo "$(CYAN)Object files removed$(RESET)"
+	@clear
 
 fclean: clean
 	@$(RM) $(NAME)
@@ -68,4 +68,5 @@ fclean: clean
 	@clear
 
 re: fclean all
+
 .PHONY: all clean fclean re
