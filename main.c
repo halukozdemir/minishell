@@ -73,7 +73,6 @@ void fill_jobs_from_tokens(t_mshell *shell, char **tokens)
             // printf("Argument added: %s\n", tokens[k]);
         }
         current_job->args[j] = NULL;
-
         current_job->redir->in_file = -1;
         current_job->redir->out_file = -1;
 		current_job->redir->append_file = -1;
@@ -81,8 +80,8 @@ void fill_jobs_from_tokens(t_mshell *shell, char **tokens)
         current_job->redir->out_files = NULL;
 		current_job->redir->appends = NULL;
         current_job->redir->eof = NULL;
-		current_job->redir->last = NONE_BOOL;
-
+		current_job->redir->last_out = NONE_BOOL;
+        current_job->redir->last_in = NONE_BOOL;
         while (tokens[i] && (ft_strncmp(tokens[i], ">", 1) == 0 || ft_strncmp(tokens[i], "<", 1) == 0 || ft_strncmp(tokens[i], ">>", 2) == 0 || ft_strncmp(tokens[i], "<<", 2) == 0))
         {
             if (ft_strncmp(tokens[i], ">>", 2) == 0)
@@ -91,7 +90,7 @@ void fill_jobs_from_tokens(t_mshell *shell, char **tokens)
                 if (tokens[i])
                 {
                     current_job->redir->appends = str_arr_realloc(current_job->redir->appends, ft_strdup(tokens[i]));
-					current_job->redir->last = APPEND;
+					current_job->redir->last_out = APPEND;
                 }
             }
             else if (ft_strncmp(tokens[i], "<<", 2) == 0)
@@ -100,6 +99,7 @@ void fill_jobs_from_tokens(t_mshell *shell, char **tokens)
                 if (tokens[i])
                 {
                     current_job->redir->eof = str_arr_realloc(current_job->redir->eof, ft_strdup(tokens[i]));
+                    current_job->redir->last_in = HDOC;
                 }
             }
             else if (ft_strncmp(tokens[i], ">", 1) == 0)
@@ -108,7 +108,7 @@ void fill_jobs_from_tokens(t_mshell *shell, char **tokens)
                 if (tokens[i])
                 {
                     current_job->redir->out_files = str_arr_realloc(current_job->redir->out_files, ft_strdup(tokens[i]));
-					current_job->redir->last = OUT;
+					current_job->redir->last_out = OUT;
                 }
             }
             else if (ft_strncmp(tokens[i], "<", 1) == 0)
@@ -117,6 +117,7 @@ void fill_jobs_from_tokens(t_mshell *shell, char **tokens)
                 if (tokens[i])
                 {
                     current_job->redir->in_files = str_arr_realloc(current_job->redir->in_files, ft_strdup(tokens[i]));
+                    current_job->redir->last_in = IN;
                 }
             }
             i++;

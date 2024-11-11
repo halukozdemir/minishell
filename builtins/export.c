@@ -45,12 +45,12 @@ char	export(t_env	*env, t_mshell *mshell, char **args)
 	int		i;
 	int		j;
 
-	j = 0;
 	i = 1;
 	if (args[i])
+	{
 		while (args[i])
 		{
-
+			j = 0;
 			while (args[i][j] && args[i][j] != '=')
 				j++;
 			key = ft_substr(args[i], 0, j);
@@ -59,16 +59,16 @@ char	export(t_env	*env, t_mshell *mshell, char **args)
 			value = ft_substr(args[i], j + 1, ft_strlen(args[i]) - j);
 			new = (t_env *)malloc(sizeof(t_env));
 			new->key = ft_strdup(key);
+			free(key);
 			if (value)
 				new->value = ft_strdup(value);
 			else
 				new->value = ft_strdup("");
-			lstadd_back2(&env, new);
-			free(key);
 			free(value);
+			lstadd_back2(&env, new);
 			i++;
-			j = 0;
 		}
+	}
 	else
 	{
 		tmp = env;

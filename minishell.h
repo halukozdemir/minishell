@@ -132,7 +132,8 @@ typedef enum e_bool
     NONE_BOOL,
     OUT,
 	APPEND,
-    HDOC// parser'a bak
+    IN,
+    HDOC
 }   t_bool;
 
 struct s_redir
@@ -140,7 +141,8 @@ struct s_redir
     int     in_file;
     int     out_file;
 	int		append_file;
-	t_bool	last;
+	t_bool	last_out;
+    t_bool    last_in;
     char    **in_files;
 	char	**out_files;
 	char	**appends;
@@ -223,7 +225,7 @@ void    get_dollar(char **input_ptr, t_jobs *jobs);
 void	signal_handle_exec(t_mshell *mshell);
 
 char 	**env_to_double_pointer(t_env *env_list);
-char	heredoc(t_jobs *jobs, t_job *job);
+char	heredoc(t_jobs *jobs, t_job *job, char state);
 char	executor(t_mshell *mshell);
 void	free_str_arr(char **str_arr);
 int 	str_arr_len(char **str_arr);

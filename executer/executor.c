@@ -48,7 +48,7 @@ char **env_to_double_pointer(t_env *env_list)
     return env_array;
 }
 
-char	heredoc(t_jobs *jobs, t_job *job)
+char	heredoc(t_jobs *jobs, t_job *job, char state)
 {
 	char	*buffer;
 	int		temp_status;
@@ -62,7 +62,8 @@ char	heredoc(t_jobs *jobs, t_job *job)
 	job->pid = fork();
     if (job->pid == 0)
     {
-		//set_signal(HEREDOC_P);
+		if (state)
+			//set_signal(HEREDOC_P);
 		dup2(jobs->mshell->backup_fd[0], 0);
         i = 0;
         while (job->redir->eof[i])
@@ -86,7 +87,8 @@ char	heredoc(t_jobs *jobs, t_job *job)
 			*/
 			len1 = ft_strlen(buffer);
 			len2 = ft_strlen(job->redir->eof[i]);
-			if (buffer && !job->redir->eof[i + 1] && !(!ft_strncmp(buffer, job->redir->eof[i], len1) && len1 == len2))
+			if (buffer && !job->redir->eof[i + 1] && state
+					&& !(!ft_strncmp(buffer, job->redir->eof[i], len1) && len1 == len2))
 				ft_putendl_fd(buffer, pipe_fd[1]);
 			if (!ft_strncmp(buffer, job->redir->eof[i], len1) && len1 == len2)
 				i++;
@@ -187,7 +189,7 @@ static void	create_file_wr(char **files, int len)
 		i = 0;
 		while (i < len && files[i])
 		{
-			fd = open(files[i], O_CREAT | O_WRONLY , 0644);
+			fd = open(files[i], O_CREAT | O_WRONLY | O_TRUNC , 0644);
 			if (fd == -1)
 				continue ;
 			close(fd);
@@ -222,9 +224,12 @@ static void	set_input(t_job *job)
 	{
 		len = str_arr_len(job->redir->in_files);
 		create_file_rd(job->redir->in_files, len);
-		job->redir->in_file = open(job->redir->in_files[len - 1], O_RDONLY, 0644);
-		dup2(job->redir->in_file, 0);
-		close(job->redir->in_file);
+		if (job->redir->last_in == IN)
+		{
+			job->redir->in_file = open(job->redir->in_files[len - 1], O_RDONLY, 0644);
+			dup2(job->redir->in_file, 0);
+			close(job->redir->in_file);
+		}
 	}
 }
 
@@ -238,13 +243,13 @@ static void	set_output(t_job *job, int pipe_fd[2])
 		dup2(pipe_fd[1], 1);
 	else if (job->redir->out_files || job->redir->appends)
 	{
-		if (job->redir->last == APPEND)
+		fd = 1;
+		if (job->redir->last_out == APPEND)
 		{
 			create_file_wr(job->redir->out_files, str_arr_len(job->redir->out_files));
 			len = str_arr_len(job->redir->appends);
 			create_file_wr_append(job->redir->appends, len);
-			if(job->redir->appends)
-				job->redir->append_file = open(job->redir->appends[len - 1], O_CREAT | O_WRONLY | O_APPEND, 0644);
+			job->redir->append_file = open(job->redir->appends[len - 1], O_CREAT | O_WRONLY | O_APPEND, 0644);
 			/*
 			if (job->redir->append_file == -1 && (jobs->len != 1 || job->is_builtin == false))
 				error1;
@@ -253,13 +258,12 @@ static void	set_output(t_job *job, int pipe_fd[2])
 			*/
 			fd = job->redir->append_file;
 		}
-		else
+		else if (job->redir->last_out == OUT)
 		{
 			create_file_wr_append(job->redir->appends, str_arr_len(job->redir->appends));
 			len = str_arr_len(job->redir->out_files);
 			create_file_wr(job->redir->out_files, len);
-			if(job->redir->appends)
-				job->redir->out_file = open(job->redir->out_files[len - 1], O_WRONLY | O_APPEND | O_CREAT, 0644);
+			job->redir->out_file = open(job->redir->out_files[len - 1], O_CREAT | O_WRONLY | O_TRUNC, 0644);
 			/*
 			if (job->redir->out_file == -1 && (jobs->len != 1 || job->is_builtin == false))
 				error1;
@@ -350,21 +354,20 @@ static void	no_pipe(t_jobs *jobs, t_job *job, char *exec_path)
 			return ;
 		}
 	}
-		if (job->is_builtin == true)
+	if (job->is_builtin == true)
+	{
+		if (job->redir->in_files)
 		{
-			if (job->redir->in_files)
+			set_input(job);
+			if (job->redir->in_file == -1)
 			{
-				set_input(job);
-				if (job->redir->in_file == -1)
-				{
-					jobs->mshell->status = 1;
-					return ;
-				}
+				jobs->mshell->status = 1;
+				return ;
 			}
-			ctrl_builtins(jobs, job);
-			return ;
 		}
-
+		ctrl_builtins(jobs, job);
+		return ;
+	}
 }
 
 static void pipe_handle(t_jobs *jobs, t_job *job, char *exec_path)
@@ -386,7 +389,11 @@ static void pipe_handle(t_jobs *jobs, t_job *job, char *exec_path)
 		close(pipe_fd[1]);
 		is_builtin(job);
 		if (job->is_builtin == false)
+		{
 			execve(exec_path, job->args, env_to_char_array(jobs->env));
+			perror("exec");
+		}
+		ctrl_builtins(jobs, job);
 		exit(127);
 	}
 	close(pipe_fd[1]);
@@ -409,13 +416,13 @@ char	executor(t_mshell *mshell)
 		exec_path = find_path(get_env_value(mshell->jobs->env, "PATH"), temp_job->cmd);
 		if (mshell->jobs->len == 1)
 		{
-			if (temp_job->redir->eof && heredoc(mshell->jobs, temp_job))
+			if (temp_job->redir->eof && heredoc(mshell->jobs, temp_job, 1))
 				break ;
 			no_pipe(mshell->jobs, temp_job, exec_path);
 		}
 		else
 		{
-			if (temp_job->redir->eof && heredoc(mshell->jobs, temp_job))
+			if (temp_job->redir->eof && heredoc(mshell->jobs, temp_job, 0))
 				break ;
 			pipe_handle(mshell->jobs, temp_job, exec_path);
 		}
@@ -548,4 +555,3 @@ static void	pipe_heredoc(t_jobs *jobs, t_job *job, int fd[2], char **exec_str_ar
 	//	freecpointer(run);
 }
 */
-

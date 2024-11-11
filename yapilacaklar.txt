@@ -22,15 +22,9 @@ statuslar öncelikli halledilecek, heredoc hataları statuslerden sonra düzelti
 
 10 kasim 2024
 
-exit cikisi.
+exit cikisi
 $?,
 sinyaller,
 export unset
-
-input heredoc bash gibi calismiyor ---> cat < test1.txt << selam > test4.txt
-// heredoc ve input sıralamasını düzenle
-
-birden fazla job oldugunda builtin calismiyor?
-env duzeltildikten sonra sunu test et ---> env | cat test1.txt | grep LANG
 
 go crazy testlerinde seg yememek yeterli.

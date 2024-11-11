@@ -31,7 +31,7 @@ void	exit_d(t_mshell *mshell, char **args)
 	int	exit_status;
 
 	exit_status = 0;
-	if (is_all_digit(args[1]))
+	if (args[1] && is_all_digit(args[1]))
 	{
 		printf("exit\n");
 		exit_error(args[1], "numeric argument required", mshell);
