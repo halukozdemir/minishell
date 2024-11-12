@@ -1,4 +1,4 @@
-prefix=/Users/halozdem/Desktop/haluk_mshell4/readline
+prefix=/Users/halozdem/Desktop/minishell/readline
 exec_prefix=${prefix}
 libdir=${exec_prefix}/lib
 includedir=${prefix}/include

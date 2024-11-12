@@ -183,6 +183,6 @@ void	env(t_env *env);
 void	exit_d(t_mshell *mshell, char **args);
 char	export(t_env *env, t_mshell *mshell, char **args);
 char	pwd(void);
-void	unset(t_env *env, char **args);
+void	unset(t_env **env, char **args);
 
 #endif

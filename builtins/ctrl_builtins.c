@@ -53,7 +53,7 @@ char	ctrl_builtins(t_jobs *jobs, t_job *job)
 	}
 	else if (!ft_strncmp(job->args[0], "unset", 5) && ft_strlen(job->args[0]) == 5)
 	{
-		unset(jobs->env, job->args);
+		unset(&jobs->env, job->args);
 		return (EXIT_SUCCESS);
 	}
 	else if (!ft_strncmp(job->args[0], "export", 6) && ft_strlen(job->args[0]) == 6)

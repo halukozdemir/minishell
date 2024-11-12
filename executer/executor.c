@@ -553,6 +553,7 @@ static char pipe_handle(t_jobs *jobs, t_job *job, char *exec_path)
 char	executor(t_mshell *mshell)
 {
 	t_job	*temp_job;
+	char	*env_path;
 	char	*exec_path;
 	int		temp_status;
 	int		i;
@@ -562,7 +563,8 @@ char	executor(t_mshell *mshell)
 	temp_job = mshell->jobs->job_list;
 	while (temp_job)
 	{
-		exec_path = find_path(get_env_value(mshell->jobs->env, "PATH"), temp_job->cmd);
+		env_path = get_env_value(mshell->jobs->env, "PATH");
+		exec_path = find_path(env_path, temp_job->cmd);
 		if (mshell->jobs->len == 1)
 		{
 			if (temp_job->redir->eof && heredoc(mshell->jobs, temp_job, 1))
