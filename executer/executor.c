@@ -563,8 +563,14 @@ char	executor(t_mshell *mshell)
 	temp_job = mshell->jobs->job_list;
 	while (temp_job)
 	{
+		//is_builtin
 		env_path = get_env_value(mshell->jobs->env, "PATH");
+		if (!env_path)
+			perror("ls");
 		exec_path = find_path(env_path, temp_job->cmd);
+		//if (!exec_path && is_builtin == false)
+		if (!exec_path)
+			perror("ls");
 		if (mshell->jobs->len == 1)
 		{
 			if (temp_job->redir->eof && heredoc(mshell->jobs, temp_job, 1))
