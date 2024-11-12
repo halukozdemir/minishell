@@ -13,40 +13,36 @@
 #ifndef MINISHELL_H
 # define MINISHELL_H
 
-#define SPECIAL_CHARS "<>| \0"
-#define QUOTES "'\""
+int exit_status;
 
-#include <stdio.h>
-#include <stdlib.h>
+# define SPECIAL_CHARS "<>| \0"
+# define QUOTES "'\""
+
+# define MAIN_SF 0
+# define CHILD_SF 1
+# define HDOC_SF 2
+
+# include <stdio.h>
+# include <stdlib.h>
 # include <readline/readline.h>
 # include <readline/history.h>
-#include <unistd.h>
-#include "lib/libft/libft.h"
-#include <stdbool.h>
-#include <limits.h>
-#include <fcntl.h>  // Dosya modları ve open() için gerekli
-#include <signal.h>
+# include <unistd.h>
+# include "lib/libft/libft.h"
+# include <stdbool.h>
+# include <limits.h>
+# include <fcntl.h>  // Dosya modları ve open() için gerekli
+# include <signal.h>
 # include "termios.h"
 # include "termcap.h"
 # include "sys/wait.h"
+# include "sys/ioctl.h"
+# include "sys/stat.h"
 
-// typedef struct s_redirection
-// {
-//     char    *filename;      // Yönlendirilecek dosyanın adı veya heredoc delimiter
-//     int     type;            // Yönlendirme türü: 0=<, 1=>, 2=>>, 3=<< (heredoc)
-//     char    *delimiter;     // Sadece heredoc için delimiter
-// } t_redirection;
-
-// typedef struct s_command
-// {
-//     char                **args;        // Komut ve argümanları tutan array
-//     t_redirection       *input_redirect;   // Giriş yönlendirmesi (örneğin '< input.txt')
-//     t_redirection       *output_redirect;  // Çıkış yönlendirmesi (örneğin '> output.txt' veya '>> output.txt')
-//     bool                append_mode;   // Output dosyası ekleme modunda mı (örneğin '>>')
-//     bool                is_pipe;       // Pipe kullanımı var mı (örneğin '|')
-//     struct s_command    *next;         // Bir sonraki komut (pipe için)
-// } t_command;
-
+typedef struct s_job    t_job;
+typedef struct s_jobs   t_jobs;
+typedef struct s_redir  t_redir;
+typedef struct s_env    t_env;
+typedef struct stat     t_stat;
 
 typedef struct s_split
 {
@@ -59,66 +55,13 @@ typedef struct s_split
 	int		start;
 }	t_split;
 
-// typedef struct s_quotes
-// {
-// 	bool	in_single_quotes;
-// 	bool	in_double_quotes;
-// }	t_quotes;
-
 typedef struct s_env
 {
-	char				*key;
-	char				*value;
-	struct s_env		*next;
-	struct s_env		*prev;
+	char	*key;
+	char	*value;
+	t_env	*next;
+	t_env	*prev;
 }	t_env;
-
-// typedef struct  s_cmd
-// {
-// 	char				**ncmd; // pipe'a göre bölünmüş inputu burda tutuyoruz.
-// 	int					pipe_count;
-// 	char				*cleaned; //executera gönderilecek double char pointer'ın tırnaklarının çıkartılmış hali
-// 	char				**sep_path;//env'deki PATH'ın : işaretine göre split'lenmiş hali
-
-// 	int					status;//$? için tutulan status
-// 	int					**fd;//pipe fonksiyonunda açılan fd'leri tutacak
-// 	char				**envp;//t_env'nin char **'a dönüştürülmüş hali
-
-// 	t_env		        *env;
-// 	t_env		        *exp;// export komutunda key'e atanmış herhangi bir value yoksa o keyi env'ye eklemez, exp structına ekler
-// 	struct s_executor	*executor;
-// }t_cmd;
-
-// typedef struct s_redirect
-// {
-// 	int type; // 10: heredoc, 11: append, 12: input, 13: output
-// 	char				*filename;
-// 	struct s_redirect	*next;
-// } t_redirection;
-
-// typedef struct s_files
-// {
-// 	int					fd_heredoc[2];//açılan dosyaların fd'lerini tutar
-// 	int					error;
-// 	int					fd_input;
-// 	int					fd_output;
-// 	char				*input;
-// 	char				*output;
-// 	char				*heredoc;
-// }						t_files;
-
-// typedef struct s_executor
-// {
-// 	char				**argv;//execve'ye göndereceğimiz char **
-// 	pid_t				pid;//child process'lerde execve çalıştırmak için
-// 	t_files				*files;//redirection structı
-// 	struct s_executor	*next;//pipe varsa yeni bir düğüm olarak kullanılır
-// 	struct s_redirect	*redirect;//redirect'ın türünü ve adını tutan struct
-// }						t_executor;
-
-typedef struct s_job t_job;
-typedef struct s_jobs t_jobs;
-typedef struct s_redir t_redir;
 
 typedef enum e_type
 {
@@ -142,7 +85,7 @@ struct s_redir
     int     out_file;
 	int		append_file;
 	t_bool	last_out;
-    t_bool    last_in;
+    t_bool  last_in;
     char    **in_files;
 	char	**out_files;
 	char	**appends;
@@ -181,7 +124,6 @@ struct s_mshell
     char        **success_arr;
 	int			backup_fd[2];
 };
-
 
 void	handle_quotes(t_split *s, char *input);
 void	handle_special_chars(t_split *s, char *input);
@@ -222,7 +164,9 @@ char	*get_env_value(t_env *env, char *key);
 void	process_key(char **input_ptr, t_env *env, int *i, bool in_single_quotes);
 void    get_dollar(char **input_ptr, t_jobs *jobs);
 
-void	signal_handle_exec(t_mshell *mshell);
+//void	signal_handle_exec(t_mshell *mshell);
+void	set_signal(int c);
+void	handler_sigint(int sig);
 
 char 	**env_to_double_pointer(t_env *env_list);
 char	heredoc(t_jobs *jobs, t_job *job, char state);

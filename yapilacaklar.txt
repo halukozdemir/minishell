@@ -22,22 +22,15 @@ statuslar öncelikli halledilecek, heredoc hataları statuslerden sonra düzelti
 
 10 kasim 2024
 
-exit parametre kontrolleri
 $?
 sinyaller
 
 go crazy testlerinde seg yememek yeterli.
 ı
 
-
-11 kasım 2024
-
-exit parametre kontrolleri
-$?
-sinyaller
+11 kasım
 
 cat <./test_files/infile_big ./test_files/infile
-//başında < olmadan da input file kabul et parserda
+başında < olmadan da input file kabul et parserda
 
 cat <"1""2""3""4""5"
-
