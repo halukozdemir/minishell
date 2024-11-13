@@ -193,6 +193,83 @@ char number_of_quote(char *input)
     return (EXIT_SUCCESS);
 }
 
+void    quote_check(char c, int *sq, int *dq)
+{
+    if (c == '\'' && *dq % 2 == 0)
+        *sq += 1;
+    else if (c == '"' && *sq % 2 == 0)
+        *dq += 1;
+}
+
+char    pipe_check(char *input, int sq, int dq)
+{
+    int count;
+    int i;
+
+    i = 0;
+    count = 0;
+    while (input[i])
+    {
+        quote_check(input[i], &sq, &dq);
+        if (input[i] != '<' && input[i] != '>' && input[i] != '"' && input[i] != '\'' && input[i] != '|')
+            count++;
+        if (input[i] == '|' && sq % 2 == 0 && dq % 2 == 0)
+        {
+            while (input[i] && input[i] == ' ')
+                i++;
+            if (!input[i])
+                return (EXIT_FAILURE);
+            if (input[i] == '|' || count == 0)
+                return (EXIT_FAILURE);
+        }
+        else
+            i++;
+    }
+    return (EXIT_SUCCESS);
+}
+
+char    input_output_check(char *input, int sq, int dq)
+{
+    int i;
+
+    i = 0;
+    while (input[i])
+    {
+        quote_check(input[i], &sq, &dq);
+        if ((input[i] == '<' || input[i] == '>') && sq % 2 == 0 && dq % 2 == 0)
+        {
+        if ((input[i] == '<' && input[i + 1] == '<')
+				|| (input[i] == '>' && input[i + 1] == '>'))
+                i += 1;
+            if (input[i] == '<' || input[i] == '>')
+                i += 1;
+            while (input[i] && input[i] == ' ')
+                i++;
+            if (!input[i] || input[i] == '<' || input[i] == '>' || input[i] == '|' || input[i] == '#')
+                return (EXIT_SUCCESS);
+        }
+        else
+            i++;
+    }
+    return (EXIT_FAILURE);
+}
+
+char    arg_controll(char *input)
+{
+    if (pipe_check(input, 0, 0))
+    {
+        write(2, "minishell: syntax error.\n", 26);
+        g_exit_status = 258;
+        return (EXIT_FAILURE);
+    }
+    else if (!input_output_check(input, 0, 0))
+    {
+        write(2, "minishell: syntax error.\n", 26);
+        g_exit_status = 258;
+        return (EXIT_FAILURE);
+    }
+    return (EXIT_SUCCESS);
+}
 int main(int argc, char **argv, char **env)
 {
     char *input;
@@ -215,8 +292,10 @@ int main(int argc, char **argv, char **env)
         mshell.jobs->job_list->redir = ft_calloc(1, sizeof(t_redir));
         set_signal(MAIN_SF);
         input = readline("minishell> ");
-        if (!input)
-            break ;
+        if (!input || arg_controll(input))
+        {
+            continue ;
+        }
         if (number_of_quote(input))
         {
             g_exit_status = 2;
