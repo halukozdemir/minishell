@@ -13,7 +13,7 @@
 #ifndef MINISHELL_H
 # define MINISHELL_H
 
-int exit_status;
+int g_exit_status;
 
 # define SPECIAL_CHARS "<>| \0"
 # define QUOTES "'\""
@@ -119,11 +119,13 @@ struct s_mshell
 {
     t_jobs      *jobs;
     t_termios   termios;
-    int         status;
     char        is_exit;
     char        **success_arr;
 	int			backup_fd[2];
 };
+
+void	free_job(t_job *job);
+void	free_redir(t_redir *redir);
 
 void	handle_quotes(t_split *s, char *input);
 void	handle_special_chars(t_split *s, char *input);
@@ -152,7 +154,7 @@ int count_env_length(t_env *lst);
 char **env_to_char_array(t_env *env_list);
 void free_env_array(char **env_array);
 
-t_env	**lstadd_back2(t_env **lst, t_env *new);
+void	lstadd_back2(t_env **lst, t_env *new);
 char	*funckey(char *env, int end);
 char	*funcval(char *env, int start);
 t_env	*envfunc2(char **env);
@@ -168,7 +170,6 @@ void    get_dollar(char **input_ptr, t_jobs *jobs);
 void	set_signal(int c);
 void	handler_sigint(int sig);
 
-char 	**env_to_double_pointer(t_env *env_list);
 char	heredoc(t_jobs *jobs, t_job *job, char state);
 char	executor(t_mshell *mshell);
 void	free_str_arr(char **str_arr);
@@ -177,11 +178,11 @@ char 	**str_arr_realloc(char **str_arr, char *element);
 char	*find_path(char *path, char *cmd);
 void	is_builtin(t_job *job);
 char	ctrl_builtins(t_jobs *jobs, t_job *job);
-char	cd(t_mshell *mshell,char *path);
+char	cd(char *path);
 void	echo(t_job *job);
 void	env(t_env *env);
-void	exit_d(t_mshell *mshell, char **args);
-char	export(t_env *env, t_mshell *mshell, char **args);
+void	exit_d(char **args);
+char	export(t_env *env, char **args);
 char	pwd(void);
 void	unset(t_env **env, char **args);
 

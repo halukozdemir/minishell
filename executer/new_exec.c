@@ -11,7 +11,6 @@ void	free_str_arr(char **str_arr)
 		i++;
 	}
 	free(str_arr);
-	str_arr = NULL;
 }
 
 int str_arr_len(char **str_arr)
@@ -44,8 +43,13 @@ char **str_arr_realloc(char **str_arr, char *element)
 	rtrn = ft_calloc(i + 2, sizeof(char *));
 	i = -1;
 	while (str_arr[++i])
-		rtrn[i] = str_arr[i];
+	{
+		rtrn[i] = ft_strdup(str_arr[i]);
+		free(str_arr[i]);
+	}
+	free(str_arr);
 	rtrn[i] = ft_strdup(element);
+	rtrn[i + 1] = NULL;
 	free(element);
 	return (rtrn);
 }
@@ -61,8 +65,6 @@ char	*find_path(char *path, char *cmd)
 	i = 0;
 	while (splitted_path[i])
 	{
-		if (!access(cmd, X_OK))
-			return (free_str_arr(splitted_path), cmd);
 		temp = ft_strjoin(splitted_path[i], "/");
 		temp2 = ft_strjoin(temp, cmd);
 		if (!access(temp2, X_OK))
@@ -72,4 +74,44 @@ char	*find_path(char *path, char *cmd)
 		i++;
 	}
 	return (NULL);
+}
+
+void	free_redir(t_redir *redir)
+{
+	if (redir->appends)
+	{
+		free_str_arr(redir->appends);
+		redir->appends = NULL;
+	}
+	if (redir->eof)
+	{
+		free_str_arr(redir->eof);
+		redir->eof = NULL;
+	}
+	if (redir->in_files)
+	{
+		free_str_arr(redir->in_files);
+		redir->in_files = NULL;
+	}
+	if (redir->out_files)
+	{
+		free_str_arr(redir->out_files);
+		redir->out_files = NULL;
+	}
+	free(redir);
+}
+
+void	free_job(t_job *job)
+{
+	if (job->args)
+	{
+		free_str_arr(job->args);
+		job->args = NULL;
+	}
+	if (job->redir)
+	{
+		free_redir(job->redir);
+		job->redir = NULL;
+	}
+	free(job);
 }

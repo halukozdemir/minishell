@@ -1,67 +1,89 @@
 #include "../minishell.h"
-#include <stdlib.h>
-#include <string.h>
 
-int count_env_length(t_env *lst)
+void	lstadd_back2(t_env **lst, t_env *new)
 {
-    int count = 0;
-    while (lst)
-    {
-        count++;
-        lst = lst->next;
-    }
-    return (count);
+	t_env	*temp;
+
+	if (!*lst)
+	{
+		*lst = new;
+		return ;
+	}
+	temp = *lst;
+	while (temp->next)
+		temp = temp->next;
+	temp->next = new;
+	new->prev = temp;
 }
 
-char **env_to_char_array(t_env *env_list)
+char	*funckey(char *env, int end)
 {
-    int i = 0;
-    int env_count = count_env_length(env_list);
-    char **env_array = (char **)malloc(sizeof(char *) * (env_count + 1)); // +1 for NULL termination
-    t_env *current = env_list;
+	char	*key;
+	int		i;
 
-    if (!env_array)
-        return (NULL);
-
-    while (current)
-    {
-        int key_len = strlen(current->key);
-        int value_len = strlen(current->value);
-
-        // Allocate memory for "key=value" format string
-        env_array[i] = (char *)malloc(key_len + value_len + 2); // +2 for '=' and '\0'
-        if (!env_array[i])
-        {
-            // Free previously allocated memory if allocation fails
-            while (i > 0)
-            {
-                free(env_array[--i]);
-            }
-            free(env_array);
-            return (NULL);
-        }
-
-        // Combine key and value into "key=value" format
-        strcpy(env_array[i], current->key);
-        strcat(env_array[i], "=");
-        strcat(env_array[i], current->value);
-
-        i++;
-        current = current->next;
-    }
-    env_array[i] = NULL; // Null terminate the array
-
-    return env_array;
+	key = (char *)malloc(end + 2); // Null karakter için ek 1 yer ayrılmalı
+	if (!key)
+		return (NULL);
+	i = 0;
+	while (i <= end)
+	{
+		key[i] = env[i];
+		i++;
+	}
+	key[i] = '\0'; // Stringin sonuna null karakteri eklenmeli
+	return (key);
 }
 
-void free_env_array(char **env_array)
+char	*funcval(char *env, int start)
 {
-    int i = 0;
-    while (env_array[i])
-    {
-        free(env_array[i]);
-        i++;
-    }
-    free(env_array);
+	char	*val;
+	int		i;
+	int		len;
 
+	i = 0;
+	len = 0;
+	while (env[start + len]) // Değerin uzunluğunu hesapla
+		len++;
+	val = (char *)malloc(len + 1); // Null karakter için ek yer
+	if (!val)
+		return (NULL);
+	while (env[start])
+	{
+		val[i] = env[start];
+		start++;
+		i++;
+	}
+	val[i] = '\0'; // String sonlandırıcıyı doğru yerde ekle
+	return (val);
+}
+
+t_env	*envfunc2(char **env)
+{
+	int		i;
+	int		end;
+	t_env	*new;
+	t_env	*lst;
+
+	lst = NULL; // Liste başlangıçta boş olmalı
+	i = 0;
+	while (env[i])
+	{
+		end = 0;
+		while (env[i][end] && env[i][end] != '=') // Anahtarın sonuna kadar ilerle
+			end++;
+		new = (t_env *)malloc(sizeof(t_env));
+		if (!new)
+			return (NULL);
+		new->key = funckey(env[i], end - 1); // '=' işaretinden önceki kısım anahtar
+		if (!new->key)
+			return (NULL);
+		new->value = funcval(env[i], end + 1); // '=' işaretinden sonrası değer
+		if (!new->value)
+			return (NULL);
+		new->next = NULL;
+		new->prev = NULL;
+		lstadd_back2(&lst, new); // Yeni düğümü listeye ekle
+		i++;
+	}
+	return (lst);
 }

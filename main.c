@@ -1,129 +1,166 @@
 #include "minishell.h"
 
-void add_job_to_jobs(t_jobs *jobs, t_job *new_job)
+static char ctrl_redir(t_job *temp, char *arg, char *signal)
 {
-    t_job *current;
+    char    *arg_net;
 
-    if (!jobs->job_list)
-        jobs->job_list = new_job;
+    if (*signal == 0)
+    {
+        *signal = -1;
+        temp->redir->last_in = IN;
+        arg_net = ft_strtrim(arg, "\"");
+        temp->redir->in_files = str_arr_realloc(temp->redir->in_files, arg_net);
+        if (!temp->redir->in_files)
+            return (EXIT_FAILURE);
+    }
+    else if (*signal == 1)
+    {
+        *signal = -1;
+        temp->redir->last_out = OUT;
+        arg_net = ft_strtrim(arg, "\"");
+        temp->redir->out_files = str_arr_realloc(temp->redir->out_files, arg_net);
+        if (!temp->redir->out_files)
+            return (EXIT_FAILURE);
+    }
+    else if (*signal == 2)
+    {
+        *signal = -1;
+        temp->redir->last_in = HDOC;
+        arg_net = ft_strtrim(arg, "\"");
+        temp->redir->eof = str_arr_realloc(temp->redir->eof, arg_net);
+        if (!temp->redir->eof)
+            return (EXIT_FAILURE);
+    }
+    else if (*signal == 3)
+    {
+        *signal = -1;
+        temp->redir->last_out = APPEND;
+        arg_net = ft_strtrim(arg, "\"");
+        temp->redir->appends = str_arr_realloc(temp->redir->appends, arg_net);
+        if (!temp->redir->appends)
+            return (EXIT_FAILURE);
+    }
     else
     {
-        current = jobs->job_list;
-        while (current->next_job)
-            current = current->next_job;
-        current->next_job = new_job;
+        if (arg[0] == '<' && !arg[1])
+            *signal = 0;
+        else if (arg[0] == '>' && !arg[1])
+            *signal = 1;
+        else if (arg[0] == '<' && arg[1] == arg[0] && !arg[2])
+            *signal = 2;
+        else if (arg[0] == '>' && arg[1] == arg[0] && !arg[2])
+            *signal = 3;
+        else
+            *signal = -1;
     }
-    jobs->len++;
+    return (EXIT_SUCCESS);
 }
 
-void fill_jobs_from_tokens(t_mshell *shell, char **tokens)
+static char ctrl_append(t_redir *redir, char *arg)
 {
-    int i = 0;
-    t_job *current_job = NULL;
+    char    *arg_trimmed;
+    int     len_arg;
+    int     len_str;
+    int     len;
 
-    shell->jobs->job_list = NULL;
-    shell->jobs->len = 0;
+    arg_trimmed = ft_strtrim(arg, "\"");
+    len_arg = ft_strlen(arg_trimmed);
+    len = str_arr_len(redir->appends);
+    if (redir->appends)
+        len_str = ft_strlen(redir->appends[len - 1]);
+    if (redir->appends && !ft_strncmp(redir->appends[len - 1], arg_trimmed, len_str) && len_str == len_arg)
+        return (1);
+    len = str_arr_len(redir->in_files);
+    if (redir->in_files)
+        len_str = ft_strlen(redir->in_files[len - 1]);
+    if (redir->in_files && !ft_strncmp(redir->in_files[len - 1], arg_trimmed, len_str) && len_str == len_arg)
+        return (1);
+    len = str_arr_len(redir->out_files);
+    if (redir->out_files)
+        len_str = ft_strlen(redir->out_files[len - 1]);
+    if (redir->out_files && !ft_strncmp(redir->out_files[len - 1], arg_trimmed, len_str) && len_str == len_arg)
+        return (1);
+    len = str_arr_len(redir->eof);
+    if (redir->eof)
+        len_str = ft_strlen(redir->eof[len - 1]);
+    if (redir->eof && !ft_strncmp(redir->eof[len - 1], arg_trimmed, len_str) && len_str == len_arg)
+        return (1);
+    return (0);
+}
+
+static char handle_distribution(t_job *temp, char *arg, char *signal)
+{
+    char    state;
+
+    if (!*arg)
+        return (EXIT_FAILURE);
+    state = ctrl_redir(temp, arg, signal);
+    if (arg[0] == '<' && !arg[1])
+        return (EXIT_SUCCESS);
+    else if (arg[0] == '>' && !arg[1])
+        return (EXIT_SUCCESS);
+    else if (arg[0] == '<' && arg[1] == arg[0] && !arg[2])
+        return (EXIT_SUCCESS);
+    else if (arg[0] == '>' && arg[1] == arg[0] && !arg[2])
+        return (EXIT_SUCCESS);
+    if (state == EXIT_FAILURE)
+        return (EXIT_FAILURE);
+    else if (*signal == -1 && !ctrl_append(temp->redir, arg))
+    {
+        temp->args = str_arr_realloc(temp->args, arg);
+        if (!temp->args)
+            return (EXIT_FAILURE);
+    }
+    return (EXIT_SUCCESS);
+}
+
+static char fill_jobs_from_tokens(t_mshell *shell, char **tokens)
+{
+    t_job   *temp;
+    //char    *arg;
+    char    signal;
+    int     i;
+
+    signal = -1;
+    shell->jobs->len = 1;
+    temp = shell->jobs->job_list;
+    i = 0;
     while (tokens[i])
     {
-        if (ft_strncmp(tokens[i], "|", 1) == 0)
+        if (tokens[i][0] == '|')
         {
-            shell->jobs->type = PIPE;
-            i++;
-            continue;
+            shell->jobs->len += 1;
+            temp->next_job = ft_calloc(1, sizeof(t_job));
+            if (!temp->next_job)
+                return (free_str_arr(tokens), EXIT_FAILURE);
+            temp = temp->next_job;
+            temp->redir = ft_calloc(1, sizeof(t_redir));
+            if (!temp->redir)
+                return (free_str_arr(tokens), EXIT_FAILURE);
+            temp->redir->append_file = -1;
+            temp->redir->in_file = -1;
+            temp->redir->out_file = -1;
+            temp->redir->last_in = NONE_BOOL;
+            temp->redir->last_out = NONE_BOOL;
         }
-
-        current_job = malloc(sizeof(t_job));
-        if (!current_job)
-        {
-            printf("Memory allocation failed for current job\n");
-            return;
-        }
-
-        current_job->cmd = ft_strdup(tokens[i++]);
-        current_job->redir = ft_calloc(1, sizeof(t_redir));
-        if (!current_job->redir)
-        {
-            free(current_job->args);
-            free(current_job);
-            printf("Memory allocation failed for redirection\n");
-            return;
-        }
-        int arg_count = 0;
-        int arg_start = i;
-        while (tokens[i] && ft_strncmp(tokens[i], "|", 1) != 0 && ft_strncmp(tokens[i], ">", 1) != 0 && ft_strncmp(tokens[i], "<", 1) != 0 && ft_strncmp(tokens[i], ">>", 2) != 0 && ft_strncmp(tokens[i], "<<", 2) != 0)
-        {
-            arg_count++;
-            i++;
-        }
-
-        current_job->args = malloc(sizeof(char *) * (arg_count + 2)); // +2: cmd + NULL
-        if (!current_job->args)
-        {
-            free(current_job);
-            printf("Memory allocation failed for arguments\n");
-            return;
-        }
-
-        current_job->args[0] = ft_strdup(current_job->cmd);
-        int j = 1;
-        for (int k = arg_start; k < arg_start + arg_count; k++)
-        {
-            current_job->args[j++] = ft_strdup(tokens[k]);
-            // printf("Argument added: %s\n", tokens[k]);
-        }
-        current_job->args[j] = NULL;
-        current_job->redir->in_file = -1;
-        current_job->redir->out_file = -1;
-		current_job->redir->append_file = -1;
-        current_job->redir->in_files = NULL;
-        current_job->redir->out_files = NULL;
-		current_job->redir->appends = NULL;
-        current_job->redir->eof = NULL;
-		current_job->redir->last_out = NONE_BOOL;
-        current_job->redir->last_in = NONE_BOOL;
-        while (tokens[i] && (ft_strncmp(tokens[i], ">", 1) == 0 || ft_strncmp(tokens[i], "<", 1) == 0 || ft_strncmp(tokens[i], ">>", 2) == 0 || ft_strncmp(tokens[i], "<<", 2) == 0))
-        {
-            if (ft_strncmp(tokens[i], ">>", 2) == 0)
-            {
-                i++;
-                if (tokens[i])
-                {
-                    current_job->redir->appends = str_arr_realloc(current_job->redir->appends, ft_strdup(tokens[i]));
-					current_job->redir->last_out = APPEND;
-                }
-            }
-            else if (ft_strncmp(tokens[i], "<<", 2) == 0)
-            {
-                i++;
-                if (tokens[i])
-                {
-                    current_job->redir->eof = str_arr_realloc(current_job->redir->eof, ft_strdup(tokens[i]));
-                    current_job->redir->last_in = HDOC;
-                }
-            }
-            else if (ft_strncmp(tokens[i], ">", 1) == 0)
-            {
-                i++;
-                if (tokens[i])
-                {
-                    current_job->redir->out_files = str_arr_realloc(current_job->redir->out_files, ft_strdup(tokens[i]));
-					current_job->redir->last_out = OUT;
-                }
-            }
-            else if (ft_strncmp(tokens[i], "<", 1) == 0)
-            {
-                i++;
-                if (tokens[i])
-                {
-                    current_job->redir->in_files = str_arr_realloc(current_job->redir->in_files, ft_strdup(tokens[i]));
-                    current_job->redir->last_in = IN;
-                }
-            }
-            i++;
-        }
-        current_job->next_job = NULL;
-        add_job_to_jobs(shell->jobs, current_job);
+        else if (handle_distribution(temp, tokens[i], &signal))
+            return (free_str_arr(tokens), EXIT_FAILURE);
+        i++;
     }
+    return (EXIT_SUCCESS);
+}
+
+static void free_nec(t_mshell *mshell)
+{
+    t_job   *temp1;
+
+    temp1 = mshell->jobs->job_list;
+    while (temp1)
+    {
+        free_job(temp1);
+        temp1 = temp1->next_job;
+    }
+    mshell->jobs->job_list = NULL;
 }
 
 char number_of_quote(char *input)
@@ -166,30 +203,34 @@ int main(int argc, char **argv, char **env)
     (void)argv;
     if (argc != 1)
         return 1;
-    mshell.status = 0;// struct initleme işlemi başta yapılcak
+    g_exit_status = 0;// struct initleme işlemi başta yapılcak
     mshell.is_exit = 0;
-    // env'i t_env structına dönüştürme
     env_list = envfunc2(env);
     mshell.jobs = ft_calloc(1, sizeof(t_jobs));
     mshell.jobs->mshell = &mshell;
     mshell.jobs->env = env_list;
     while (1)
     {
-		//signal_handle_general(&mshell);
+        mshell.jobs->job_list = ft_calloc(1, sizeof(t_job));
+        mshell.jobs->job_list->redir = ft_calloc(1, sizeof(t_redir));
         set_signal(MAIN_SF);
         input = readline("minishell> ");
         if (!input)
             break ;
         if (number_of_quote(input))
         {
-            mshell.status = 2;
-            continue ;// error fd = 2
+            g_exit_status = 2;
+            write(2, "Qutoes do not match\n", 21);
+            continue ;
         }
         add_history(input);
         get_dollar(&input, mshell.jobs);
+        if (!input[0])
+            continue ;
         cmd = get_token(input);
         fill_jobs_from_tokens(&mshell, cmd);
         executor(&mshell);
+        free_nec(&mshell);
         free(input);
     }
     return (0);

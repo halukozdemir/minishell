@@ -1,6 +1,6 @@
 #include "../minishell.h"
 
-char **env_to_double_pointer(t_env *env_list)
+static char	**env_to_double_pointer(t_env *env_list)
 {
     int count = 0;
     t_env *temp = env_list;
@@ -48,6 +48,72 @@ char **env_to_double_pointer(t_env *env_list)
     return env_array;
 }
 
+static void errL(char *path)
+{
+	t_stat	stat_t;
+
+	write(2, "minishell: ", 12);
+	write(2, path, ft_strlen(path));
+	stat(path, &stat_t);
+	if (S_ISDIR(stat_t.st_mode))
+	{
+		g_exit_status = 1;
+		write(2, ": Is a directory\n", 18);
+		exit(126);
+	}
+	else if (!S_ISREG(stat_t.st_mode))
+	{
+		g_exit_status = 1;
+		write(2, ": No such file or directory\n", 29);
+		exit(127);
+	}
+	if (access(path, X_OK))
+	{
+		g_exit_status = 1;
+		ft_putendl_fd(":  Permission denied", 2);
+		exit(126);
+	}
+}
+
+static void runCmd(t_jobs *jobs, t_job *job)
+{
+	char *env_path;
+	char *exec_path;
+
+	env_path = get_env_value(jobs->env, "PATH");
+	if (!env_path)
+	{
+		if (!access(job->args[0], X_OK))
+		{
+			execve(job->args[0], job->args, env_to_double_pointer(jobs->env));
+			exit(127);
+		}
+		else
+		{
+			ft_putstr_fd("minishell: ", 2);
+			ft_putstr_fd(job->args[0], 2);
+			ft_putendl_fd(": No such file or directory", 2);
+		}
+	}
+	if (ft_strchr(job->args[0] ,'/'))
+	{
+		errL(job->args[0]);
+		exec_path = job->args[0];
+	}
+	else
+		exec_path = find_path(env_path, job->args[0]);
+	if (!exec_path)
+	{
+		ft_putstr_fd("minishell: ", 2);
+		ft_putstr_fd(job->args[0], 2);
+		ft_putendl_fd(": command not found", 2);
+		exit(127);
+	}
+	g_exit_status = 0;
+	execve(exec_path, job->args, env_to_double_pointer(jobs->env));
+	exit(127);
+}
+
 char	heredoc(t_jobs *jobs, t_job *job, char state)
 {
 	char	*buffer;
@@ -69,7 +135,7 @@ char	heredoc(t_jobs *jobs, t_job *job, char state)
         while (job->redir->eof[i])
 		{
 			/*
-			if (jobs->mshell->status == 999)
+			if (g_exit_status == 999)
 			{
 				free(buffer);
 				exit(130);
@@ -78,11 +144,11 @@ char	heredoc(t_jobs *jobs, t_job *job, char state)
 			buffer = readline(">");
 			if (!buffer)
 			{
-				exit_status = 130;
-				exit(exit_status);
+				g_exit_status = 130;
+				exit(g_exit_status);
 			}
 			/*
-			if (jobs->mshell->status == 999)
+			if (g_exit_status == 999)
 				continue ;
 			*/
 			len1 = ft_strlen(buffer);
@@ -101,8 +167,8 @@ char	heredoc(t_jobs *jobs, t_job *job, char state)
 	close(pipe_fd[0]);
     waitpid(job->pid, &temp_status, 0);
 	if (WIFEXITED(temp_status))
-		exit_status = WEXITSTATUS(temp_status);
-	if (exit_status == 130)
+		g_exit_status = WEXITSTATUS(temp_status);
+	if (g_exit_status == 130)
 		return (EXIT_FAILURE);
     return (EXIT_SUCCESS);
 }
@@ -110,24 +176,19 @@ char	heredoc(t_jobs *jobs, t_job *job, char state)
 static char	redir_error(t_jobs *jobs, t_job *job, char *file_i, int fd)
 {
 	t_stat	stat_t;
-	int		state;
 
 	if (fd == -1 && (jobs->len != 1 || job->is_builtin == false))
 	{
-		exit_status = 1;
+		g_exit_status = 1;
 		write(2, "minishell: ", 12);
 		write(2, file_i, ft_strlen(file_i));
-		state = stat(file_i, &stat_t);
-		if (!state)
-			S_ISDIR(stat_t.st_mode);
-		else
+		stat(file_i, &stat_t);
+		if (S_ISDIR(stat_t.st_mode))
 		{
 			write(2, ": Is a directory\n", 18);
 			exit(1);
 		}
-		if (!state)
-			S_ISREG(stat_t.st_mode);
-		else
+		else if (!S_ISDIR(stat_t.st_mode))
 		{
 			write(2, ": No such file or directory\n", 29);
 			exit(1);
@@ -135,17 +196,13 @@ static char	redir_error(t_jobs *jobs, t_job *job, char *file_i, int fd)
 	}
 	else if (fd == -1 && jobs->len == 1)
 	{
-		exit_status = 1;
+		g_exit_status = 1;
 		write(2, "minishell: ", 12);
 		write(2, file_i, ft_strlen(file_i));
-		state = stat(file_i, &stat_t);
-		if (!state)
-			S_ISDIR(stat_t.st_mode);
-		else
+		stat(file_i, &stat_t);
+		if (S_ISDIR(stat_t.st_mode))
 			write(2, ": Is a directory\n", 18);
-		if (!state)
-			S_ISREG(stat_t.st_mode);
-		else
+		else if (!S_ISDIR(stat_t.st_mode))
 			write(2, ": No such file or directory\n", 29);
 		return (EXIT_FAILURE);
 	}
@@ -162,8 +219,10 @@ static char	create_file_rd(t_jobs *jobs,t_job *job, char **files, int len)
 		i = 0;
 		while (i < len && files[i])
 		{
+			fd = open(files[i], O_RDONLY, 0644);
 			if (access(files[i], F_OK))
 			{
+				g_exit_status = 1;
 				write(2, "minishell: ", 12);
 				write(2, files[i], ft_strlen(files[i]));
 				write(2, ": No such file or directory\n", 29);
@@ -171,12 +230,12 @@ static char	create_file_rd(t_jobs *jobs,t_job *job, char **files, int len)
 			}
 			if (access(files[i], R_OK))
 			{
+				g_exit_status = 1;
 				write(2, "minishell: ", 12);
 				write(2, files[i], ft_strlen(files[i]));
 				write(2, ": Permission denied\n", 21);
 				exit(1);
 			}
-			fd = open(files[i], O_RDONLY, 0644);
 			if (redir_error(jobs, job, files[i], fd))
 				return (EXIT_FAILURE);
 			close(fd);
@@ -196,8 +255,10 @@ static char	create_file_wr(t_jobs *jobs,t_job *job, char **files, int len)
 		i = 0;
 		while (i < len && files[i])
 		{
+			fd = open(files[i], O_CREAT | O_WRONLY | O_TRUNC , 0644);
 			if (access(files[i], F_OK))
 			{
+				g_exit_status = 1;
 				write(2, "minishell: ", 12);
 				write(2, files[i], ft_strlen(files[i]));
 				write(2, ": No such file or directory\n", 29);
@@ -205,12 +266,12 @@ static char	create_file_wr(t_jobs *jobs,t_job *job, char **files, int len)
 			}
 			if (access(files[i], R_OK))
 			{
+				g_exit_status = 1;
 				write(2, "minishell: ", 12);
 				write(2, files[i], ft_strlen(files[i]));
 				write(2, ": Permission denied\n", 21);
 				exit(1);
 			}
-			fd = open(files[i], O_CREAT | O_WRONLY | O_TRUNC , 0644);
 			if (redir_error(jobs, job, files[i], fd))
 				return (EXIT_FAILURE);
 			close(fd);
@@ -230,8 +291,10 @@ static char	create_file_wr_append(t_jobs *jobs,t_job *job, char **files, int len
 		i = 0;
 		while (i < len && files[i])
 		{
+			fd = open(files[i], O_CREAT | O_WRONLY | O_APPEND, 0644);
 			if (access(files[i], F_OK))
 			{
+				g_exit_status = 1;
 				write(2, "minishell: ", 12);
 				write(2, files[i], ft_strlen(files[i]));
 				write(2, ": No such file or directory\n", 29);
@@ -239,12 +302,12 @@ static char	create_file_wr_append(t_jobs *jobs,t_job *job, char **files, int len
 			}
 			if (access(files[i], R_OK))
 			{
+				g_exit_status = 1;
 				write(2, "minishell: ", 12);
 				write(2, files[i], ft_strlen(files[i]));
 				write(2, ": Permission denied\n", 21);
 				exit(1);
 			}
-			fd = open(files[i], O_CREAT | O_WRONLY | O_APPEND, 0644);
 			if (redir_error(jobs, job, files[i], fd))
 				return (EXIT_FAILURE);
 			close(fd);
@@ -265,8 +328,10 @@ static char	set_input(t_jobs *jobs, t_job *job)
 			return (EXIT_FAILURE);
 		if (job->redir->last_in == IN)
 		{
+			job->redir->in_file = open(job->redir->in_files[len - 1], O_RDONLY, 0644);
 			if (access(job->redir->in_files[len - 1], F_OK))
 			{
+				g_exit_status = 1;
 				write(2, "minishell: ", 12);
 				write(2, job->redir->in_files[len - 1], ft_strlen(job->redir->in_files[len - 1]));
 				write(2, ": No such file or directory\n", 29);
@@ -274,12 +339,14 @@ static char	set_input(t_jobs *jobs, t_job *job)
 			}
 			if (access(job->redir->in_files[len - 1], R_OK))
 			{
+				g_exit_status = 1;
 				write(2, "minishell: ", 12);
 				write(2, job->redir->in_files[len - 1], ft_strlen(job->redir->in_files[len - 1]));
 				write(2, ": Permission denied\n", 21);
 				return (EXIT_FAILURE);
 			}
-			job->redir->in_file = open(job->redir->in_files[len - 1], O_RDONLY, 0644);
+			if (redir_error(jobs, job, job->redir->in_files[len - 1], job->redir->in_file))
+				return (EXIT_FAILURE);
 			dup2(job->redir->in_file, 0);
 			close(job->redir->in_file);
 		}
@@ -305,8 +372,10 @@ static char	set_output(t_jobs *jobs, t_job *job, int pipe_fd[2])
 			len = str_arr_len(job->redir->appends);
 			if (create_file_wr_append(jobs, job, job->redir->appends, len))
 				return (EXIT_FAILURE);
+			job->redir->append_file = open(job->redir->appends[len - 1], O_CREAT | O_WRONLY | O_APPEND, 0644);
 			if (access(job->redir->appends[len - 1], F_OK))
 			{
+				g_exit_status = 1;
 				write(2, "minishell: ", 12);
 				write(2, job->redir->appends[len - 1], ft_strlen(job->redir->appends[len - 1]));
 				write(2, ": No such file or directory\n", 29);
@@ -314,12 +383,12 @@ static char	set_output(t_jobs *jobs, t_job *job, int pipe_fd[2])
 			}
 			if (access(job->redir->appends[len - 1], R_OK))
 			{
+				g_exit_status = 1;
 				write(2, "minishell: ", 12);
 				write(2, job->redir->appends[len - 1], ft_strlen(job->redir->appends[len - 1]));
 				write(2, ": Permission denied\n", 21);
 				return (EXIT_FAILURE);
 			}
-			job->redir->append_file = open(job->redir->appends[len - 1], O_CREAT | O_WRONLY | O_APPEND, 0644);
 			fd = job->redir->append_file;
 			if (redir_error(jobs, job, job->redir->appends[len - 1], fd))
 				return (EXIT_FAILURE);
@@ -331,8 +400,10 @@ static char	set_output(t_jobs *jobs, t_job *job, int pipe_fd[2])
 			len = str_arr_len(job->redir->out_files);
 			if (create_file_wr(jobs, job, job->redir->out_files, len))
 				return (EXIT_FAILURE);
+			job->redir->out_file = open(job->redir->out_files[len - 1], O_CREAT | O_WRONLY | O_TRUNC, 0644);
 			if (access(job->redir->out_files[len - 1], F_OK))
 			{
+				g_exit_status = 1;
 				write(2, "minishell: ", 12);
 				write(2, job->redir->out_files[len - 1], ft_strlen(job->redir->out_files[len - 1]));
 				write(2, ": No such file or directory\n", 29);
@@ -340,12 +411,12 @@ static char	set_output(t_jobs *jobs, t_job *job, int pipe_fd[2])
 			}
 			if (access(job->redir->out_files[len - 1], R_OK))
 			{
+				g_exit_status = 1;
 				write(2, "minishell: ", 12);
 				write(2, job->redir->out_files[len - 1], ft_strlen(job->redir->out_files[len - 1]));
 				write(2, ": Permission denied\n", 21);
 				return (EXIT_FAILURE);
 			}
-			job->redir->out_file = open(job->redir->out_files[len - 1], O_CREAT | O_WRONLY | O_TRUNC, 0644);
 			fd = job->redir->out_file;
 			if (redir_error(jobs, job, job->redir->out_files[len - 1], fd))
 				return (EXIT_FAILURE);
@@ -356,7 +427,7 @@ static char	set_output(t_jobs *jobs, t_job *job, int pipe_fd[2])
 	return (EXIT_SUCCESS);
 }
 
-static char	child_process(t_jobs *jobs, t_job *job, char *exec_path)
+static char	child_process(t_jobs *jobs, t_job *job)
 {
 	int		len;
 	int 	fd;
@@ -367,10 +438,12 @@ static char	child_process(t_jobs *jobs, t_job *job, char *exec_path)
 		if (job->redir->appends)
 		{
 			len = str_arr_len(job->redir->appends);
+			job->redir->append_file = open(job->redir->appends[len - 1], O_CREAT | O_WRONLY | O_APPEND, 0644);
 			if (create_file_wr_append(jobs, job, job->redir->appends, len))
 				return (EXIT_FAILURE);
 			if (access(job->redir->appends[len - 1], F_OK))
 			{
+				g_exit_status = 1;
 				write(2, "minishell: ", 12);
 				write(2, job->redir->appends[len - 1], ft_strlen(job->redir->appends[len - 1]));
 				write(2, ": No such file or directory\n", 29);
@@ -378,13 +451,15 @@ static char	child_process(t_jobs *jobs, t_job *job, char *exec_path)
 			}
 			if (access(job->redir->appends[len - 1], R_OK))
 			{
+				g_exit_status = 1;
 				write(2, "minishell: ", 12);
 				write(2, job->redir->appends[len - 1], ft_strlen(job->redir->appends[len - 1]));
 				write(2, ": Permission denied\n", 21);
 				return (EXIT_FAILURE);
 			}
-			job->redir->append_file = open(job->redir->appends[len - 1], O_CREAT | O_WRONLY | O_APPEND, 0644);
 			fd = job->redir->append_file;
+			if (redir_error(jobs, job, job->redir->appends[len - 1], fd))
+				return (EXIT_FAILURE);
 			if (create_file_wr(jobs, job, job->redir->out_files, str_arr_len(job->redir->out_files)))
 				return (EXIT_FAILURE);
 		}
@@ -393,8 +468,10 @@ static char	child_process(t_jobs *jobs, t_job *job, char *exec_path)
 			len = str_arr_len(job->redir->out_files);
 			if (create_file_wr(jobs, job, job->redir->out_files, len))
 				return (EXIT_FAILURE);
+			job->redir->out_file = open(job->redir->out_files[len - 1], O_CREAT | O_WRONLY | O_TRUNC, 0644);
 			if (access(job->redir->out_files[len - 1], F_OK))
 			{
+				g_exit_status = 1;
 				write(2, "minishell: ", 12);
 				write(2, job->redir->out_files[len - 1], ft_strlen(job->redir->out_files[len - 1]));
 				write(2, ": No such file or directory\n", 29);
@@ -402,13 +479,15 @@ static char	child_process(t_jobs *jobs, t_job *job, char *exec_path)
 			}
 			if (access(job->redir->out_files[len - 1], R_OK))
 			{
+				g_exit_status = 1;
 				write(2, "minishell: ", 12);
 				write(2, job->redir->out_files[len - 1], ft_strlen(job->redir->out_files[len - 1]));
 				write(2, ": Permission denied\n", 21);
 				return (EXIT_FAILURE);
 			}
-			job->redir->out_file = open(job->redir->out_files[len - 1], O_CREAT | O_WRONLY | O_TRUNC, 0644);
 			fd = job->redir->out_file;
+			if (redir_error(jobs, job, job->redir->out_files[len - 1], fd))
+				return (EXIT_FAILURE);
 			if (create_file_wr_append(jobs, job, job->redir->appends, str_arr_len(job->redir->appends)))
 				return (EXIT_FAILURE);
 		}
@@ -417,12 +496,11 @@ static char	child_process(t_jobs *jobs, t_job *job, char *exec_path)
 	}
 	if (job->redir->in_files && set_input(jobs, job))
 		return (EXIT_FAILURE);
-	execve(exec_path, job->args, env_to_double_pointer(jobs->env));
-	perror("exec");
+	runCmd(jobs, job);
 	return (EXIT_FAILURE);
 }
 
-static char	no_pipe(t_jobs *jobs, t_job *job, char *exec_path)
+static char	no_pipe(t_jobs *jobs, t_job *job)
 {
 	int	len;
 	int	fd;
@@ -434,9 +512,8 @@ static char	no_pipe(t_jobs *jobs, t_job *job, char *exec_path)
 		if (job->pid == 0)
 		{
 			set_signal(CHILD_SF);
-			if (child_process(jobs, job, exec_path))
-				return (EXIT_FAILURE);
-			exit(exit_status);
+			child_process(jobs, job);
+			exit(g_exit_status);
 		}
 	}
 	if (job->redir->out_files || job->redir->appends)
@@ -448,8 +525,10 @@ static char	no_pipe(t_jobs *jobs, t_job *job, char *exec_path)
 			len = str_arr_len(job->redir->appends);
 			if (create_file_wr_append(jobs, job, job->redir->appends, len))
 				return (EXIT_FAILURE);
+			job->redir->append_file = open(job->redir->appends[len - 1], O_CREAT | O_WRONLY | O_APPEND, 0644);
 			if (access(job->redir->appends[len - 1], F_OK))
 			{
+				g_exit_status = 1;
 				write(2, "minishell: ", 12);
 				write(2, job->redir->appends[len - 1], ft_strlen(job->redir->appends[len - 1]));
 				write(2, ": No such file or directory\n", 29);
@@ -457,13 +536,15 @@ static char	no_pipe(t_jobs *jobs, t_job *job, char *exec_path)
 			}
 			if (access(job->redir->appends[len - 1], R_OK))
 			{
+				g_exit_status = 1;
 				write(2, "minishell: ", 12);
 				write(2, job->redir->appends[len - 1], ft_strlen(job->redir->appends[len - 1]));
 				write(2, ": Permission denied\n", 21);
 				return (EXIT_FAILURE);
 			}
-			job->redir->append_file = open(job->redir->appends[len - 1], O_CREAT | O_WRONLY | O_APPEND, 0644);
 			fd = job->redir->append_file;
+			if (redir_error(jobs, job, job->redir->appends[len - 1], fd))
+				return (EXIT_FAILURE);
 			if (create_file_wr(jobs, job, job->redir->out_files, str_arr_len(job->redir->out_files)))
 				return (EXIT_FAILURE);
 		}
@@ -472,8 +553,10 @@ static char	no_pipe(t_jobs *jobs, t_job *job, char *exec_path)
 			len = str_arr_len(job->redir->out_files);
 			if (create_file_wr(jobs, job, job->redir->out_files, len))
 				return (EXIT_FAILURE);
+			job->redir->out_file = open(job->redir->out_files[len - 1], O_CREAT | O_WRONLY | O_TRUNC, 0644);
 			if (access(job->redir->out_files[len - 1], F_OK))
 			{
+				g_exit_status = 1;
 				write(2, "minishell: ", 12);
 				write(2, job->redir->out_files[len - 1], ft_strlen(job->redir->out_files[len - 1]));
 				write(2, ": No such file or directory\n", 29);
@@ -481,13 +564,15 @@ static char	no_pipe(t_jobs *jobs, t_job *job, char *exec_path)
 			}
 			if (access(job->redir->out_files[len - 1], R_OK))
 			{
+				g_exit_status = 1;
 				write(2, "minishell: ", 12);
 				write(2, job->redir->out_files[len - 1], ft_strlen(job->redir->out_files[len - 1]));
 				write(2, ": Permission denied\n", 21);
 				return (EXIT_FAILURE);
 			}
-			job->redir->out_file = open(job->redir->out_files[len - 1], O_CREAT | O_WRONLY | O_TRUNC, 0644);
 			fd = job->redir->out_file;
+			if (redir_error(jobs, job, job->redir->out_files[len - 1], fd))
+				return (EXIT_FAILURE);
 			if (create_file_wr_append(jobs, job, job->redir->appends, str_arr_len(job->redir->appends)))
 				return (EXIT_FAILURE);
 		}
@@ -495,7 +580,7 @@ static char	no_pipe(t_jobs *jobs, t_job *job, char *exec_path)
 		close(fd);
 		if (fd == -1)
 		{
-			exit_status = 1;
+			g_exit_status = 1;
 			return (EXIT_FAILURE);
 		}
 	}
@@ -507,7 +592,7 @@ static char	no_pipe(t_jobs *jobs, t_job *job, char *exec_path)
 				return (EXIT_FAILURE);
 			if (job->redir->in_file == -1)
 			{
-				exit_status = 1;
+				g_exit_status = 1;
 				return (EXIT_FAILURE);
 			}
 		}
@@ -516,7 +601,7 @@ static char	no_pipe(t_jobs *jobs, t_job *job, char *exec_path)
 	return (EXIT_SUCCESS);
 }
 
-static char pipe_handle(t_jobs *jobs, t_job *job, char *exec_path)
+static char pipe_handle(t_jobs *jobs, t_job *job)
 {
 	int	pipe_fd[2];
 
@@ -537,12 +622,9 @@ static char pipe_handle(t_jobs *jobs, t_job *job, char *exec_path)
 		close(pipe_fd[1]);
 		is_builtin(job);
 		if (job->is_builtin == false)
-		{
-			execve(exec_path, job->args, env_to_char_array(jobs->env));
-			perror("exec");
-		}
-		ctrl_builtins(jobs, job);
-		exit(127);
+			runCmd(jobs, job);
+		g_exit_status = 0;
+		exit(ctrl_builtins(jobs, job));
 	}
 	close(pipe_fd[1]);
 	dup2(pipe_fd[0], 0);
@@ -550,53 +632,15 @@ static char pipe_handle(t_jobs *jobs, t_job *job, char *exec_path)
 	return (EXIT_SUCCESS);
 }
 
-char	executor(t_mshell *mshell)
+void wait_child(t_mshell *mshell)
 {
 	t_job	*temp_job;
-	char	*env_path;
-	char	*exec_path;
 	int		temp_status;
 	int		i;
 
-	mshell->backup_fd[0] = dup(STDIN_FILENO);
-	mshell->backup_fd[1] = dup(STDOUT_FILENO);
-	temp_job = mshell->jobs->job_list;
-	while (temp_job)
-	{
-		//is_builtin
-		env_path = get_env_value(mshell->jobs->env, "PATH");
-		if (!env_path)
-			perror("ls");
-		exec_path = find_path(env_path, temp_job->cmd);
-		//if (!exec_path && is_builtin == false)
-		if (!exec_path)
-			perror("ls");
-		if (mshell->jobs->len == 1)
-		{
-			if (temp_job->redir->eof && heredoc(mshell->jobs, temp_job, 1))
-				break ;
-			if (no_pipe(mshell->jobs, temp_job, exec_path))
-				return (EXIT_SUCCESS);
-		}
-		else
-		{
-			if (temp_job->redir->eof && heredoc(mshell->jobs, temp_job, 0))
-				break ;
-			if (exit_status == 130)
-				break ;
-			if (pipe_handle(mshell->jobs, temp_job, exec_path))
-				return (EXIT_SUCCESS);
-		}
-		temp_job = temp_job->next_job;
-	}
-	dup2(mshell->backup_fd[0], 0);
-	close(mshell->backup_fd[0]);
-	dup2(mshell->backup_fd[1], 1);
-	close(mshell->backup_fd[1]);
-	temp_status = 0;
 	temp_job = mshell->jobs->job_list;
 	if (mshell->jobs->len == 1 && temp_job->is_builtin == true)
-		return (EXIT_SUCCESS);
+		return ;
 	while (temp_job)
 	{
 		signal(SIGINT, &handler_sigint);
@@ -607,10 +651,45 @@ char	executor(t_mshell *mshell)
 		if (mshell->jobs->len == 1 && temp_job->is_builtin == true)
 			break ;
 		if (WIFEXITED(temp_status))
-			mshell->status = WEXITSTATUS(temp_status);
+			g_exit_status = WEXITSTATUS(temp_status);
 		else if (WIFSIGNALED(temp_status))
-			mshell->status = 128 + WTERMSIG(temp_status);
+			g_exit_status = 128 + WTERMSIG(temp_status);
 		temp_job = temp_job->next_job;
 	}
+}
+
+char	executor(t_mshell *mshell)
+{
+	t_job	*temp_job;
+
+	mshell->backup_fd[0] = dup(STDIN_FILENO);
+	mshell->backup_fd[1] = dup(STDOUT_FILENO);
+	temp_job = mshell->jobs->job_list;
+	while (temp_job)
+	{
+		if (mshell->jobs->len == 1)
+		{
+			if (temp_job->redir->eof && heredoc(mshell->jobs, temp_job, 1))
+				break ;
+			if (no_pipe(mshell->jobs, temp_job))
+				return (EXIT_SUCCESS);
+		}
+		else
+		{
+			if (temp_job->redir->eof && heredoc(mshell->jobs, temp_job, 0))
+				break ;
+			if (g_exit_status == 130)
+				break ;
+			if (pipe_handle(mshell->jobs, temp_job))
+				return (EXIT_SUCCESS);
+			g_exit_status = 0;
+		}
+		temp_job = temp_job->next_job;
+	}
+	dup2(mshell->backup_fd[0], 0);
+	close(mshell->backup_fd[0]);
+	dup2(mshell->backup_fd[1], 1);
+	close(mshell->backup_fd[1]);
+	wait_child(mshell);
 	return (EXIT_SUCCESS);
 }

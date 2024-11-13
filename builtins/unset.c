@@ -32,4 +32,5 @@ void	unset(t_env **env, char **args)
 		}
 		i++;
 	}
+	g_exit_status = 0;
 }

@@ -25,14 +25,14 @@ char *strip_quotes(char *str)
     return (new_str);
 }
 
-char exit_error(char *args, const char *message, t_mshell *mshell)
+char exit_error(char *args, const char *message)
 {
     write(2, "minishell: exit: ", 17);
     write(2, args, ft_strlen(args));
     write(2, ": ", 2);
     write(2, message, ft_strlen(message));
     write(2, "\n", 1);
-    mshell->status = 255;
+    g_exit_status = 255;
     return (EXIT_FAILURE);
 }
 
@@ -86,50 +86,47 @@ int get_exit_value(char *str)
     return ((int)result);
 }
 
-void exit_d(t_mshell *mshell, char **args)
+void exit_d(char **args)
 {
     int exit_status;
     char *stripped_arg;
 
     printf("exit\n");
-
     if (args[1] != NULL)
     {
         stripped_arg = strip_quotes(args[1]);
         if (!stripped_arg)
         {
-            exit_error(args[1], "memory allocation error", mshell);
-            exit(mshell->status);
+            exit_error(args[1], "memory allocation error");
+            exit(g_exit_status);
         }
         if (is_all_digit(stripped_arg) == EXIT_FAILURE)
         {
-            exit_error(args[1], "numeric argument required", mshell);
+            exit_error(args[1], "numeric argument required");
             free(stripped_arg);
-            exit(mshell->status);
+            exit(g_exit_status);
         }
         else if (args[2] != NULL)
         {
+            g_exit_status = 1;
             write(2, "minishell: exit: too many arguments\n", 36);
-            mshell->status = 1;
             free(stripped_arg);
-            return;
+            return ;
         }
         else
         {
             exit_status = get_exit_value(stripped_arg);
             if (exit_status == EXIT_FAILURE)
             {
-                exit_error(args[1], "numeric argument required", mshell);
+                exit_error(args[1], "numeric argument required");
                 free(stripped_arg);
-                exit(mshell->status);
+                exit(g_exit_status);
             }
-            mshell->status = exit_status;
+            g_exit_status = exit_status;
         }
         free(stripped_arg);
     }
     else
-    {
-        mshell->status = 0;
-    }
-    exit(mshell->status);
+        g_exit_status = 0;
+    exit(g_exit_status);
 }

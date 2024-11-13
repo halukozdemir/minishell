@@ -96,7 +96,7 @@ void	get_dollar(char **input_ptr, t_jobs *jobs)
 		{
 			if (!ft_strncmp(input + i, "$?", 2))
 			{
-				value = ft_itoa(jobs->mshell->status);
+				value = ft_itoa(g_exit_status);
 				if (value)
 					total_len += ft_strlen(value);
 				i += 2;
@@ -134,7 +134,7 @@ void	get_dollar(char **input_ptr, t_jobs *jobs)
 		{
 			if (!ft_strncmp(input + i, "$?", 2))
 			{
-				value = ft_itoa(jobs->mshell->status);
+				value = ft_itoa(g_exit_status);
 				if (value)
 				{
 					ft_strlcpy(new_input + len, value, ft_strlen(value) + 1);

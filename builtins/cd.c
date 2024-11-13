@@ -1,11 +1,12 @@
 #include "../minishell.h"
 
-char	cd(t_mshell *mshell, char *path)
+char	cd(char *path)
 {
 	if (chdir(path) == -1)
 	{
-		mshell->status = 1;
+		g_exit_status = 1;
 		perror("cd");
+		return (EXIT_FAILURE);
 	}
 	return (EXIT_SUCCESS);
 }
