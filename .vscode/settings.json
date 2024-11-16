@@ -75,6 +75,8 @@
     "tuple": "c",
     "type_traits": "c",
     "vector": "c",
-    "sstream": "c"
+    "sstream": "c",
+    "locale": "c",
+    "string": "c"
   }
 }

@@ -1,5 +1,13 @@
 #include "minishell.h"
 
+static char append_files_order(t_job *temp, char *arg)
+{
+    temp->redir->files_order = str_arr_realloc(temp->redir->files_order, arg);
+    if (!temp->redir->files_order)
+        return (EXIT_FAILURE);
+    return (EXIT_SUCCESS);
+}
+
 static char ctrl_redir(t_job *temp, char *arg, char *signal)
 {
     char    *arg_net;
@@ -10,7 +18,7 @@ static char ctrl_redir(t_job *temp, char *arg, char *signal)
         temp->redir->last_in = IN;
         arg_net = ft_strtrim(arg, "\"");
         temp->redir->in_files = str_arr_realloc(temp->redir->in_files, arg_net);
-        if (!temp->redir->in_files)
+        if (!temp->redir->in_files || append_files_order(temp, arg_net))
             return (EXIT_FAILURE);
     }
     else if (*signal == 1)
@@ -19,7 +27,7 @@ static char ctrl_redir(t_job *temp, char *arg, char *signal)
         temp->redir->last_out = OUT;
         arg_net = ft_strtrim(arg, "\"");
         temp->redir->out_files = str_arr_realloc(temp->redir->out_files, arg_net);
-        if (!temp->redir->out_files)
+        if (!temp->redir->out_files || append_files_order(temp, arg_net))
             return (EXIT_FAILURE);
     }
     else if (*signal == 2)
@@ -28,7 +36,7 @@ static char ctrl_redir(t_job *temp, char *arg, char *signal)
         temp->redir->last_in = HDOC;
         arg_net = ft_strtrim(arg, "\"");
         temp->redir->eof = str_arr_realloc(temp->redir->eof, arg_net);
-        if (!temp->redir->eof)
+        if (!temp->redir->eof || append_files_order(temp, arg_net))
             return (EXIT_FAILURE);
     }
     else if (*signal == 3)
@@ -37,7 +45,7 @@ static char ctrl_redir(t_job *temp, char *arg, char *signal)
         temp->redir->last_out = APPEND;
         arg_net = ft_strtrim(arg, "\"");
         temp->redir->appends = str_arr_realloc(temp->redir->appends, arg_net);
-        if (!temp->redir->appends)
+        if (!temp->redir->appends || append_files_order(temp, arg_net))
             return (EXIT_FAILURE);
     }
     else
@@ -67,31 +75,58 @@ static char ctrl_append(t_redir *redir, char *arg)
     len_arg = ft_strlen(arg_trimmed);
     len = str_arr_len(redir->appends);
     if (redir->appends)
+    {
         len_str = ft_strlen(redir->appends[len - 1]);
-    if (redir->appends && !ft_strncmp(redir->appends[len - 1], arg_trimmed, len_str) && len_str == len_arg)
-        return (1);
+        if (!ft_strncmp(redir->appends[len - 1], arg_trimmed, len_str) && len_str == len_arg)
+            return (free(arg_trimmed),1);
+    }
     len = str_arr_len(redir->in_files);
     if (redir->in_files)
-        len_str = ft_strlen(redir->in_files[len - 1]);
-    if (redir->in_files && !ft_strncmp(redir->in_files[len - 1], arg_trimmed, len_str) && len_str == len_arg)
-        return (1);
+    {
+        if (redir->in_files)
+            len_str = ft_strlen(redir->in_files[len - 1]);
+        if (!ft_strncmp(redir->in_files[len - 1], arg_trimmed, len_str) && len_str == len_arg)
+            return (free(arg_trimmed),1);
+    }
     len = str_arr_len(redir->out_files);
     if (redir->out_files)
+    {
         len_str = ft_strlen(redir->out_files[len - 1]);
-    if (redir->out_files && !ft_strncmp(redir->out_files[len - 1], arg_trimmed, len_str) && len_str == len_arg)
-        return (1);
+        if (!ft_strncmp(redir->out_files[len - 1], arg_trimmed, len_str) && len_str == len_arg)
+            return (free(arg_trimmed),1);
+    }
     len = str_arr_len(redir->eof);
     if (redir->eof)
+    {
         len_str = ft_strlen(redir->eof[len - 1]);
-    if (redir->eof && !ft_strncmp(redir->eof[len - 1], arg_trimmed, len_str) && len_str == len_arg)
-        return (1);
+        if (!ft_strncmp(redir->eof[len - 1], arg_trimmed, len_str) && len_str == len_arg)
+            return (free(arg_trimmed),1);
+    }
+    free(arg_trimmed);
     return (0);
+}
+
+void    free_double_pointer(char **str)
+{
+    int i;
+
+    i = 0;
+    while (str[i])
+    {
+        free(str[i]);
+        i++;
+    }
+    free(str);
 }
 
 static char handle_distribution(t_job *temp, char *arg, char *signal)
 {
     char    state;
+    char **a;
+    int i;
 
+    i = 0;
+    a = temp->args;
     if (!*arg)
         return (EXIT_FAILURE);
     state = ctrl_redir(temp, arg, signal);
@@ -107,9 +142,9 @@ static char handle_distribution(t_job *temp, char *arg, char *signal)
         return (EXIT_FAILURE);
     else if (*signal == -1 && !ctrl_append(temp->redir, arg))
     {
-        temp->args = str_arr_realloc(temp->args, arg);
+        temp->args = str_arr_realloc(a, arg);
         if (!temp->args)
-            return (EXIT_FAILURE);
+            return  (free_double_pointer(temp->args), EXIT_FAILURE);
     }
     return (EXIT_SUCCESS);
 }
@@ -117,7 +152,6 @@ static char handle_distribution(t_job *temp, char *arg, char *signal)
 static char fill_jobs_from_tokens(t_mshell *shell, char **tokens)
 {
     t_job   *temp;
-    //char    *arg;
     char    signal;
     int     i;
 
@@ -144,7 +178,9 @@ static char fill_jobs_from_tokens(t_mshell *shell, char **tokens)
             temp->redir->last_out = NONE_BOOL;
         }
         else if (handle_distribution(temp, tokens[i], &signal))
+        {
             return (free_str_arr(tokens), EXIT_FAILURE);
+        }
         i++;
     }
     return (EXIT_SUCCESS);
@@ -152,124 +188,214 @@ static char fill_jobs_from_tokens(t_mshell *shell, char **tokens)
 
 static void free_nec(t_mshell *mshell)
 {
-    t_job   *temp1;
+    t_job *temp1;
+    t_job *next;
 
     temp1 = mshell->jobs->job_list;
     while (temp1)
     {
-        free_job(temp1);
-        temp1 = temp1->next_job;
+        next = temp1->next_job; // temp1 serbest bırakılmadan önce next_job'u al
+        free_job(temp1);        // temp1'i güvenle serbest bırak
+        temp1 = next;           // Sonraki düğüme geç
     }
     mshell->jobs->job_list = NULL;
 }
 
-char number_of_quote(char *input)
-{
-    char    quote_type;
-    bool    in_quote;
-    int     i;
 
-    i = 0;
+bool check_unmatched_quotes(const char *input)
+{
+    char quote_type;
+    bool in_quote;
+
+    quote_type = '\0';
     in_quote = false;
-    while (input[i])
+    while (*input)
     {
-        if (ft_strchr(QUOTES, input[i]))
+        if ((*input == '\'' || *input == '"') && (quote_type == '\0' || quote_type == *input))
         {
-            if (!in_quote)
-            {
-            quote_type = input[i];
-            in_quote = !in_quote;
-            }
+            if (quote_type == '\0')
+                quote_type = *input;
             else
-            {
-                if (input[i] == quote_type)
-                    in_quote = !in_quote;
-            }
+                quote_type = '\0';
+            in_quote = !in_quote;
         }
-        i++;
+        input++;
     }
     if (in_quote)
-        return (EXIT_FAILURE);
-    return (EXIT_SUCCESS);
-}
-
-void    quote_check(char c, int *sq, int *dq)
-{
-    if (c == '\'' && *dq % 2 == 0)
-        *sq += 1;
-    else if (c == '"' && *sq % 2 == 0)
-        *dq += 1;
-}
-
-char    pipe_check(char *input, int sq, int dq)
-{
-    int count;
-    int i;
-
-    i = 0;
-    count = 0;
-    while (input[i])
     {
-        quote_check(input[i], &sq, &dq);
-        if (input[i] != '<' && input[i] != '>' && input[i] != '"' && input[i] != '\'' && input[i] != '|')
-            count++;
-        if (input[i] == '|' && sq % 2 == 0 && dq % 2 == 0)
+        ft_putendl_fd("Syntax error: Unmatched quotes", STDERR_FILENO);
+        g_exit_status = 2;
+        return (true);
+    }
+    return (false);
+}
+bool check_invalid_pipes(const char *input)
+{
+    bool last_was_pipe = false;
+
+    while (*input)
+    {
+        if (*input == '|')
         {
-            while (input[i] && input[i] == ' ')
-                i++;
-            if (!input[i])
-                return (EXIT_FAILURE);
-            if (input[i] == '|' || count == 0)
-                return (EXIT_FAILURE);
+            if (last_was_pipe)
+            {
+                ft_putendl_fd("Syntax error: Consecutive pipes", STDERR_FILENO);
+                g_exit_status = 2;
+                return (true);
+            }
+            last_was_pipe = true;
         }
-        else
-            i++;
+        else if (!ft_strchr(" \t", *input))
+            last_was_pipe = false;
+        input++;
     }
-    return (EXIT_SUCCESS);
+    if (last_was_pipe)
+    {
+        ft_putendl_fd("Syntax error: Pipe at end", STDERR_FILENO);
+        g_exit_status = 2;
+        return (true);
+    }
+    return (false);
 }
 
-char    input_output_check(char *input, int sq, int dq)
+bool check_incomplete_heredoc(const char *input)
 {
-    int i;
+    const char *hdoc;
 
-    i = 0;
-    while (input[i])
+    hdoc = ft_strnstr(input, "<<", ft_strlen(input));
+    if (hdoc)
     {
-        quote_check(input[i], &sq, &dq);
-        if ((input[i] == '<' || input[i] == '>') && sq % 2 == 0 && dq % 2 == 0)
+        hdoc += 2;
+        while (*hdoc && ft_strchr(" \t", *hdoc))
+            hdoc++;
+        if (*hdoc == '\0')
         {
-        if ((input[i] == '<' && input[i + 1] == '<')
-				|| (input[i] == '>' && input[i + 1] == '>'))
-                i += 1;
-            if (input[i] == '<' || input[i] == '>')
-                i += 1;
-            while (input[i] && input[i] == ' ')
-                i++;
-            if (!input[i] || input[i] == '<' || input[i] == '>' || input[i] == '|' || input[i] == '#')
-                return (EXIT_SUCCESS);
+            ft_putendl_fd("Syntax error: Incomplete heredoc", STDERR_FILENO);
+            g_exit_status = 2;
+            return (true);
         }
-        else
-            i++;
     }
-    return (EXIT_FAILURE);
+    return (false);
+}
+bool check_special_char_sequence(const char **input)
+{
+    if ((**input == '<' && *(*input + 1) == '<') ||
+        (**input == '>' && *(*input + 1) == '>'))
+        *input += 2;
+    else if (ft_strchr(SPECIAL_CHARS, **input))
+    {
+        (*input)++;
+        if (ft_strchr(SPECIAL_CHARS, **input))
+        {
+            ft_putendl_fd("Syntax error: Consecutive special characters", STDERR_FILENO);
+            g_exit_status = 2;
+            return true;
+        }
+    }
+    else
+        return false;
+
+    while (**input == ' ') (*input)++;
+    if (**input == '\0')
+    {
+        ft_putendl_fd("Syntax error: Unexpected end of input", STDERR_FILENO);
+        g_exit_status = 2;
+        return true;
+    }
+    return false;
 }
 
-char    arg_controll(char *input)
+bool check_invalid_special_chars(const char *input)
 {
-    if (pipe_check(input, 0, 0))
+    while (*input)
     {
-        write(2, "minishell: syntax error.\n", 26);
-        g_exit_status = 258;
-        return (EXIT_FAILURE);
+        while (*input == ' ') input++;
+        if (check_special_char_sequence(&input))
+            return true;
+        if (*input && !ft_strchr(SPECIAL_CHARS, *input))
+            input++;
     }
-    else if (!input_output_check(input, 0, 0))
-    {
-        write(2, "minishell: syntax error.\n", 26);
-        g_exit_status = 258;
-        return (EXIT_FAILURE);
-    }
-    return (EXIT_SUCCESS);
+    return false;
 }
+
+
+bool check_syntax_errors(const char *input)
+{
+    g_exit_status = 0;
+    if (check_unmatched_quotes(input))
+        return (true);
+    if (check_invalid_pipes(input))
+        return (true);
+    if (check_incomplete_heredoc(input))
+        return (true);
+    if (check_invalid_special_chars(input))
+        return (true);
+    return (false);
+}
+
+// int main(int argc, char **argv, char **env)
+// {
+//     char *input;
+//     t_env *env_list;
+//     t_mshell mshell;
+//     char **cmd;
+
+//     (void)argv;
+//     if (argc != 1)
+//         return 1;
+//     g_exit_status = 0;// struct initleme işlemi başta yapılcak
+//     mshell.is_exit = 0;
+//     env_list = envfunc2(env);
+//     mshell.jobs = ft_calloc(1, sizeof(t_jobs));
+//     mshell.jobs->mshell = &mshell;
+//     mshell.jobs->env = env_list;
+//     while (1)
+//     {
+//         mshell.jobs->job_list = ft_calloc(1, sizeof(t_job));
+//         mshell.jobs->job_list->redir = ft_calloc(1, sizeof(t_redir));
+//         set_signal(MAIN_SF);
+//         input = readline("minishell> ");
+//         if (!input)
+//             break ;
+//         // if(check_syntax_errors(input))
+//         // {
+//         //     free(input);
+//         //     continue;
+//         // }
+//         set_signal(314159);
+//         add_history(input);
+//         get_dollar(&input, mshell.jobs);
+//         if (!input[0])
+//             continue ;
+//         cmd = get_token(input);
+//         fill_jobs_from_tokens(&mshell, cmd);
+//         executor(&mshell);
+//         free_nec(&mshell);
+//         free(input);
+//     }
+//     return (0);
+// }
+
+
+
+void free_env_list(t_env *env)
+{
+    t_env *temp;
+
+    while (env)
+    {
+        temp = env->next;    // Sonraki düğümü sakla
+        if (env->key)
+            free(env->key);  // `key` belleğini serbest bırak
+        if (env->value)
+            free(env->value); // `value` belleğini serbest bırak
+        free(env);           // Mevcut düğümün kendisini serbest bırak
+        env = temp;          // Sonraki düğüme geç
+    }
+}
+
+
+
 int main(int argc, char **argv, char **env)
 {
     char *input;
@@ -280,37 +406,63 @@ int main(int argc, char **argv, char **env)
     (void)argv;
     if (argc != 1)
         return 1;
-    g_exit_status = 0;// struct initleme işlemi başta yapılcak
+
+    // Başlangıç ayarları
+    g_exit_status = 0;
     mshell.is_exit = 0;
     env_list = envfunc2(env);
     mshell.jobs = ft_calloc(1, sizeof(t_jobs));
     mshell.jobs->mshell = &mshell;
     mshell.jobs->env = env_list;
+
     while (1)
     {
+        if (mshell.jobs->job_list)
+            free_nec(&mshell);
         mshell.jobs->job_list = ft_calloc(1, sizeof(t_job));
         mshell.jobs->job_list->redir = ft_calloc(1, sizeof(t_redir));
+
         set_signal(MAIN_SF);
         input = readline("minishell> ");
-        if (!input || arg_controll(input))
+        if (!input)
         {
-            continue ;
+            free(input);
+            break;
         }
-        if (number_of_quote(input))
-        {
-            g_exit_status = 2;
-            write(2, "Qutoes do not match\n", 21);
-            continue ;
-        }
+        // Syntax hatalarını kontrol et
+        // if(check_syntax_errors(input))
+        // {
+        //     free(input);
+        //     continue;
+        // }
+
+        set_signal(314159);
         add_history(input);
         get_dollar(&input, mshell.jobs);
         if (!input[0])
-            continue ;
+        {
+            free(input);
+            continue;
+        }
         cmd = get_token(input);
-        fill_jobs_from_tokens(&mshell, cmd);
+        if (!cmd)
+        {
+            free(input);
+            continue;
+        }
+        if (fill_jobs_from_tokens(&mshell, cmd) == EXIT_FAILURE)
+        {
+            free(input);
+            free_str_arr(cmd);
+            continue;
+        }
         executor(&mshell);
-        free_nec(&mshell);
+        free_str_arr(cmd);
         free(input);
     }
+    free_jobs_list(mshell.jobs->job_list);
+    free_env_list(mshell.jobs->env);
+    free(mshell.jobs);
+
     return (0);
 }

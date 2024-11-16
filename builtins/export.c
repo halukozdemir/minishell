@@ -1,18 +1,30 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   export.c                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/11/16 17:13:23 by halozdem          #+#    #+#             */
+/*   Updated: 2024/11/16 17:13:23 by halozdem         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../minishell.h"
 
-static char	ctrl_key_from_env(t_env *env, char *key, char *value)
+static int	update_env_value(t_env *env, char *key, char *value)
 {
-	t_env	*temp;
-	int		len_key;
-	int		len;
+	t_env		*temp;
+	size_t		len_key;
 
 	len_key = ft_strlen(key);
 	temp = env;
 	while (temp)
 	{
-		len = ft_strlen(temp->key);
-		if (!ft_strncmp(temp->key, key, len) && len == len_key)
+		if (!ft_strncmp(temp->key, key, ft_strlen(temp->key))
+			&& len_key == ft_strlen(temp->key))
 		{
+			free(temp->value);
 			temp->value = ft_strdup(value);
 			if (!temp->value)
 				return (-1);
@@ -23,34 +35,31 @@ static char	ctrl_key_from_env(t_env *env, char *key, char *value)
 	return (0);
 }
 
-static char	is_alnum_or_underscore(char *str, char state)
+static int	is_valid_identifier(char *str, char state)
 {
-	char	contain_alpha;
 	int		i;
+	int		has_alpha;
 
 	if (!str)
 		return (EXIT_SUCCESS);
-	contain_alpha = 0;
 	i = 0;
+	has_alpha = 0;
 	while (str[i])
 	{
-		if (state)
-		{
-			if (str[i] == '=')
-				i++;
-		}
+		if (state && str[i] == '=')
+			i++;
 		if (ft_isalpha(str[i]))
-			contain_alpha = 1;
+			has_alpha = 1;
 		if (!ft_isalnum(str[i]) && str[i] != '_')
 			return (EXIT_FAILURE);
 		i++;
 	}
-	if (!contain_alpha)
+	if (has_alpha == 0)
 		return (EXIT_FAILURE);
 	return (EXIT_SUCCESS);
 }
 
-char	export_error(char *args, const char *message)
+static int	handle_export_error(char *args, const char *message)
 {
 	g_exit_status = 1;
 	write(2, "minishell: export: `", 21);
@@ -61,59 +70,45 @@ char	export_error(char *args, const char *message)
 	return (EXIT_FAILURE);
 }
 
-char	export(t_env *env, char **args)
+static int	process_argument(t_env *env, char *arg)
 {
 	char	*key;
 	char	*value;
-	char	state;
-	t_env	*new;
-	t_env	*tmp;
-	int		i;
-	int		j;
+	int		state;
 
+	key = extract_key(arg);
+	if (is_valid_identifier(key, 0))
+		return (handle_export_error(arg, "not a valid identifier"));
+	value = extract_value(arg);
+	state = update_env_value(env, key, value);
+	if (state == -1
+		|| (!state && add_new_env_var(&env, key, value) == EXIT_FAILURE))
+	{
+		free(key);
+		free(value);
+		return (EXIT_FAILURE);
+	}
+	free(key);
+	free(value);
+	return (EXIT_SUCCESS);
+}
+
+char	export(t_env *env, char **args)
+{
+	int	i;
+
+	if (!args[1])
+	{
+		display_env_vars(env);
+		g_exit_status = 0;
+		return (EXIT_SUCCESS);
+	}
 	i = 1;
-	if (args[i])
+	while (args[i])
 	{
-		while (args[i])
-		{
-			j = 0;
-			while (args[i][j] && args[i][j] != '=')
-				j++;
-			key = ft_substr(args[i], 0, j);
-			if (is_alnum_or_underscore(key, 0))
-				return (export_error(args[i], "not a valid identifier"));
-			value = ft_substr(args[i], j + 1, ft_strlen(args[i]) - j);
-			state = ctrl_key_from_env(env, key, value);
-			if (state == -1)
-				return (EXIT_FAILURE);
-			if (state)
-				return (EXIT_SUCCESS);
-			new = (t_env *)malloc(sizeof(t_env));
-			new->key = ft_strdup(key);
-			free(key);
-			if (value)
-				new->value = ft_strdup(value);
-			else
-				new->value = ft_strdup("");
-			free(value);
-			new->prev = NULL;
-			new->next = NULL;
-			lstadd_back2(&env, new);
-			i++;
-		}
+		if (process_argument(env, args[i]) == EXIT_FAILURE)
+			return (EXIT_FAILURE);
+		i++;
 	}
-	else
-	{
-		tmp = env;
-		while (tmp)
-		{
-			if (tmp->value)
-				printf("declare -x %s=\"%s\"\n", tmp->key, tmp->value);
-			else
-				printf("declare -x %s=\"\"\n", tmp->key);
-			tmp = tmp->next;
-		}
-	}
-	g_exit_status = 0;
 	return (EXIT_SUCCESS);
 }

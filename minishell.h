@@ -35,7 +35,6 @@ int g_exit_status;
 # include "termios.h"
 # include "termcap.h"
 # include "sys/wait.h"
-# include "sys/ioctl.h"
 # include "sys/stat.h"
 
 typedef struct s_job    t_job;
@@ -90,11 +89,11 @@ struct s_redir
 	char	**out_files;
 	char	**appends;
     char    **eof;
+    char    **files_order;
 };
 
 struct s_job
 {
-    char    *cmd;
 	bool	is_builtin;
 	pid_t	pid;
     char    **args;
@@ -170,6 +169,12 @@ void    get_dollar(char **input_ptr, t_jobs *jobs);
 void	set_signal(int c);
 void	handler_sigint(int sig);
 
+bool check_unmatched_quotes(const char *input);
+bool check_invalid_pipes(const char *input);
+bool check_incomplete_heredoc(const char *input);
+bool check_invalid_special_chars(const char *input);
+bool check_syntax_errors(const char *input);
+
 char	heredoc(t_jobs *jobs, t_job *job, char state);
 char	executor(t_mshell *mshell);
 void	free_str_arr(char **str_arr);
@@ -185,5 +190,24 @@ void	exit_d(char **args);
 char	export(t_env *env, char **args);
 char	pwd(void);
 void	unset(t_env **env, char **args);
+void    free_jobs_list(t_job *job_list);
 
+void	handle_exit_argument(char **args, char *stripped_arg);
+int	    get_exit_value(char *str);
+char	is_all_digit(char *str);
+char	exit_error(char *args, const char *message);
+char	*strip_quotes(char *str);
+
+char	handle_pwd(void);
+char	handle_cd(char *arg);
+char	handle_echo(t_job *job);
+char	handle_env(t_env *envv);
+char	handle_exit(char **args);
+char	handle_unset(t_env **env, char **args);
+char	handle_export(t_env *env, char **args);
+
+void	display_env_vars(t_env *env);
+int	add_new_env_var(t_env **env, char *key, char *value);
+char	*extract_key(char *arg);
+char	*extract_value(char *arg);
 #endif

@@ -26,10 +26,10 @@ static void	handler_heredoc(int status)
 {
 	if (status == SIGINT)
 	{
-		g_exit_status = 999;
-		ioctl(STDIN_FILENO, TIOCSTI, "\n");
 		rl_replace_line("", 0);
+		ft_putchar_fd('\n', STDOUT_FILENO);
 		rl_on_new_line();
+		exit(130);
 	}
 }
 
@@ -50,4 +50,6 @@ void	set_signal(int c)
 		signal(SIGINT, &handler_heredoc);
 		signal(SIGQUIT, SIG_IGN);
 	}
+	else
+		signal(SIGINT, SIG_IGN);
 }
