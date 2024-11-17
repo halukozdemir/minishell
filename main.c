@@ -18,8 +18,9 @@ static char ctrl_redir(t_job *temp, char *arg, char *signal)
         temp->redir->last_in = IN;
         arg_net = ft_strtrim(arg, "\"");
         temp->redir->in_files = str_arr_realloc(temp->redir->in_files, arg_net);
+        // free(arg_net);
         if (!temp->redir->in_files || append_files_order(temp, arg_net))
-            return (EXIT_FAILURE);
+            return ((free(arg_net)),EXIT_FAILURE);
     }
     else if (*signal == 1)
     {
@@ -27,8 +28,9 @@ static char ctrl_redir(t_job *temp, char *arg, char *signal)
         temp->redir->last_out = OUT;
         arg_net = ft_strtrim(arg, "\"");
         temp->redir->out_files = str_arr_realloc(temp->redir->out_files, arg_net);
+        // free(arg_net);
         if (!temp->redir->out_files || append_files_order(temp, arg_net))
-            return (EXIT_FAILURE);
+            return ((free(arg_net)),EXIT_FAILURE);
     }
     else if (*signal == 2)
     {
@@ -36,8 +38,9 @@ static char ctrl_redir(t_job *temp, char *arg, char *signal)
         temp->redir->last_in = HDOC;
         arg_net = ft_strtrim(arg, "\"");
         temp->redir->eof = str_arr_realloc(temp->redir->eof, arg_net);
+        // free(arg_net);
         if (!temp->redir->eof || append_files_order(temp, arg_net))
-            return (EXIT_FAILURE);
+            return ((free(arg_net)),EXIT_FAILURE);
     }
     else if (*signal == 3)
     {
@@ -45,8 +48,9 @@ static char ctrl_redir(t_job *temp, char *arg, char *signal)
         temp->redir->last_out = APPEND;
         arg_net = ft_strtrim(arg, "\"");
         temp->redir->appends = str_arr_realloc(temp->redir->appends, arg_net);
+        // free(arg_net);
         if (!temp->redir->appends || append_files_order(temp, arg_net))
-            return (EXIT_FAILURE);
+            return ((free(arg_net)),EXIT_FAILURE);
     }
     else
     {
@@ -123,9 +127,7 @@ static char handle_distribution(t_job *temp, char *arg, char *signal)
 {
     char    state;
     char **a;
-    int i;
 
-    i = 0;
     a = temp->args;
     if (!*arg)
         return (EXIT_FAILURE);
@@ -178,9 +180,7 @@ static char fill_jobs_from_tokens(t_mshell *shell, char **tokens)
             temp->redir->last_out = NONE_BOOL;
         }
         else if (handle_distribution(temp, tokens[i], &signal))
-        {
             return (free_str_arr(tokens), EXIT_FAILURE);
-        }
         i++;
     }
     return (EXIT_SUCCESS);
@@ -201,136 +201,65 @@ static void free_nec(t_mshell *mshell)
     mshell->jobs->job_list = NULL;
 }
 
-
-bool check_unmatched_quotes(const char *input)
+bool is_special_char(const char *token)
 {
-    char quote_type;
-    bool in_quote;
-
-    quote_type = '\0';
-    in_quote = false;
-    while (*input)
-    {
-        if ((*input == '\'' || *input == '"') && (quote_type == '\0' || quote_type == *input))
-        {
-            if (quote_type == '\0')
-                quote_type = *input;
-            else
-                quote_type = '\0';
-            in_quote = !in_quote;
-        }
-        input++;
-    }
-    if (in_quote)
-    {
-        ft_putendl_fd("Syntax error: Unmatched quotes", STDERR_FILENO);
-        g_exit_status = 2;
-        return (true);
-    }
-    return (false);
+    return (ft_strncmp(token, "|", 2) == 0 ||
+            ft_strncmp(token, "<", 2) == 0 ||
+            ft_strncmp(token, ">", 2) == 0 ||
+            ft_strncmp(token, "<<", 3) == 0 ||
+            ft_strncmp(token, ">>", 3) == 0);
 }
-bool check_invalid_pipes(const char *input)
-{
-    bool last_was_pipe = false;
 
-    while (*input)
+bool check_syntax_errors(char **tokens)
+{
+    int i = 0;
+
+    while (tokens[i])
     {
-        if (*input == '|')
+        // Pipe kontrolü
+        if (ft_strncmp(tokens[i], "|", 2) == 0)
         {
-            if (last_was_pipe)
+            if (i == 0 || tokens[i + 1] == NULL || is_special_char(tokens[i + 1]))
             {
-                ft_putendl_fd("Syntax error: Consecutive pipes", STDERR_FILENO);
-                g_exit_status = 2;
-                return (true);
+                ft_putendl_fd("Syntax error near unexpected token '|'", 2);
+                return true;
             }
-            last_was_pipe = true;
         }
-        else if (!ft_strchr(" \t", *input))
-            last_was_pipe = false;
+
+        // Redirection kontrolü
+        if (is_special_char(tokens[i]) && ft_strncmp(tokens[i], "|", 2) != 0)
+        {
+            if (tokens[i + 1] == NULL || is_special_char(tokens[i + 1]))
+            {
+                ft_putendl_fd("Syntax error near unexpected token", 2);
+                return true;
+            }
+        }
+
+        i++;
+    }
+
+    return false;
+}
+
+bool check_unclosed_quotes(const char *input)
+{
+    char quote = '\0';
+
+    while (*input)
+    {
+        if ((*input == '\'' || *input == '"') && (quote == '\0' || quote == *input))
+            quote = (quote == '\0') ? *input : '\0'; // Aç/kapa
         input++;
     }
-    if (last_was_pipe)
-    {
-        ft_putendl_fd("Syntax error: Pipe at end", STDERR_FILENO);
-        g_exit_status = 2;
-        return (true);
-    }
-    return (false);
-}
 
-bool check_incomplete_heredoc(const char *input)
-{
-    const char *hdoc;
-
-    hdoc = ft_strnstr(input, "<<", ft_strlen(input));
-    if (hdoc)
+    if (quote != '\0')
     {
-        hdoc += 2;
-        while (*hdoc && ft_strchr(" \t", *hdoc))
-            hdoc++;
-        if (*hdoc == '\0')
-        {
-            ft_putendl_fd("Syntax error: Incomplete heredoc", STDERR_FILENO);
-            g_exit_status = 2;
-            return (true);
-        }
-    }
-    return (false);
-}
-bool check_special_char_sequence(const char **input)
-{
-    if ((**input == '<' && *(*input + 1) == '<') ||
-        (**input == '>' && *(*input + 1) == '>'))
-        *input += 2;
-    else if (ft_strchr(SPECIAL_CHARS, **input))
-    {
-        (*input)++;
-        if (ft_strchr(SPECIAL_CHARS, **input))
-        {
-            ft_putendl_fd("Syntax error: Consecutive special characters", STDERR_FILENO);
-            g_exit_status = 2;
-            return true;
-        }
-    }
-    else
-        return false;
-
-    while (**input == ' ') (*input)++;
-    if (**input == '\0')
-    {
-        ft_putendl_fd("Syntax error: Unexpected end of input", STDERR_FILENO);
-        g_exit_status = 2;
+        ft_putendl_fd("Syntax error: Unclosed quote", 2);
         return true;
     }
+
     return false;
-}
-
-bool check_invalid_special_chars(const char *input)
-{
-    while (*input)
-    {
-        while (*input == ' ') input++;
-        if (check_special_char_sequence(&input))
-            return true;
-        if (*input && !ft_strchr(SPECIAL_CHARS, *input))
-            input++;
-    }
-    return false;
-}
-
-
-bool check_syntax_errors(const char *input)
-{
-    g_exit_status = 0;
-    if (check_unmatched_quotes(input))
-        return (true);
-    if (check_invalid_pipes(input))
-        return (true);
-    if (check_incomplete_heredoc(input))
-        return (true);
-    if (check_invalid_special_chars(input))
-        return (true);
-    return (false);
 }
 
 // int main(int argc, char **argv, char **env)
@@ -429,13 +358,6 @@ int main(int argc, char **argv, char **env)
             free(input);
             break;
         }
-        // Syntax hatalarını kontrol et
-        // if(check_syntax_errors(input))
-        // {
-        //     free(input);
-        //     continue;
-        // }
-
         set_signal(314159);
         add_history(input);
         get_dollar(&input, mshell.jobs);
@@ -444,11 +366,21 @@ int main(int argc, char **argv, char **env)
             free(input);
             continue;
         }
+        if (check_unclosed_quotes(input))
+        {
+            continue;
+            return 1;
+        }
         cmd = get_token(input);
         if (!cmd)
         {
             free(input);
             continue;
+        }
+         if (check_syntax_errors(cmd))
+        {
+            continue;
+            return 1;
         }
         if (fill_jobs_from_tokens(&mshell, cmd) == EXIT_FAILURE)
         {

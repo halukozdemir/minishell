@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   exit_utils.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
+/*   By: halozdem <halozdem@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/16 16:37:42 by halozdem          #+#    #+#             */
-/*   Updated: 2024/11/16 16:47:51 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/11/18 00:28:13 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,7 +53,6 @@ int	get_exit_value(char *str)
 void	handle_exit_argument(char **args, char *stripped_arg)
 {
 	int	exit_status;
-
 	if (is_all_digit(stripped_arg) == EXIT_FAILURE)
 	{
 		exit_error(args[1], "numeric argument required");
@@ -68,12 +67,12 @@ void	handle_exit_argument(char **args, char *stripped_arg)
 		return ;
 	}
 	exit_status = get_exit_value(stripped_arg);
-	if (exit_status == EXIT_FAILURE)
-	{
-		exit_error(args[1], "numeric argument required");
-		free(stripped_arg);
-		exit(g_exit_status);
-	}
+	// if (exit_status == EXIT_FAILURE)
+	// {
+	// 	exit_error(args[1], "numeric argument required");
+	// 	free(stripped_arg);
+	// 	exit(g_exit_status);
+	// }
 	g_exit_status = exit_status;
 	free(stripped_arg);
 }

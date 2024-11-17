@@ -169,11 +169,7 @@ void    get_dollar(char **input_ptr, t_jobs *jobs);
 void	set_signal(int c);
 void	handler_sigint(int sig);
 
-bool check_unmatched_quotes(const char *input);
-bool check_invalid_pipes(const char *input);
-bool check_incomplete_heredoc(const char *input);
-bool check_invalid_special_chars(const char *input);
-bool check_syntax_errors(const char *input);
+bool check_syntax_errors(char **tokens);
 
 char	heredoc(t_jobs *jobs, t_job *job, char state);
 char	executor(t_mshell *mshell);
