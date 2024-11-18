@@ -17,24 +17,24 @@
 
 void	is_builtin(t_job *job)
 {
-	if (!ft_strncmp(job->args[0], "pwd", 3) && ft_strlen(job->args[0]) == 3)
+	if (job->args && !ft_strncmp(job->args[0], "pwd", 3) && ft_strlen(job->args[0]) == 3)
 		job->is_builtin = true;
-	else if (!ft_strncmp(job->args[0], "cd", 2)
+	else if (job->args && !ft_strncmp(job->args[0], "cd", 2)
 		&& ft_strlen(job->args[0]) == 2)
 		job->is_builtin = true;
-	else if (!ft_strncmp(job->args[0], "echo", 4)
+	else if (job->args && !ft_strncmp(job->args[0], "echo", 4)
 		&& ft_strlen(job->args[0]) == 4)
 		job->is_builtin = true;
-	else if (!ft_strncmp(job->args[0], "env", 3)
+	else if (job->args && !ft_strncmp(job->args[0], "env", 3)
 		&& ft_strlen(job->args[0]) == 3)
 		job->is_builtin = true;
-	else if (!ft_strncmp(job->args[0], "exit", 4)
+	else if (job->args && !ft_strncmp(job->args[0], "exit", 4)
 		&& ft_strlen(job->args[0]) == 4)
 		job->is_builtin = true;
-	else if (!ft_strncmp(job->args[0], "unset", 5)
+	else if (job->args && !ft_strncmp(job->args[0], "unset", 5)
 		&& ft_strlen(job->args[0]) == 5)
 		job->is_builtin = true;
-	else if (!ft_strncmp(job->args[0], "export", 6)
+	else if (job->args && !ft_strncmp(job->args[0], "export", 6)
 		&& ft_strlen(job->args[0]) == 6)
 		job->is_builtin = true;
 	else

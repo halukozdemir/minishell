@@ -20,7 +20,15 @@ static void	access_error(char *file, const char *message)
 	ft_putstr_fd((char *) message, 2);
 }
 
-static char	**env_to_double_pointer(t_env *env_list)
+static char **free_env_array(char **env_array, int count)
+{
+    while (--count >= 0)
+        free(env_array[count]);
+    free(env_array);
+    return (NULL);
+}
+
+static int get_env_count(t_env *env_list)
 {
     int count = 0;
     t_env *temp = env_list;
@@ -29,39 +37,36 @@ static char	**env_to_double_pointer(t_env *env_list)
         count++;
         temp = temp->next;
     }
-    char **env_array = malloc(sizeof(char *) * (count + 1));
-    if (!env_array)
-        return NULL;
+    return count;
+}
 
+static char **env_to_double_pointer(t_env *env_list)
+{
+    t_env   *temp;
+    char    **env_array;
+    char    *temp_str;
+    int     count;
+    int     i;
+
+    count = get_env_count(env_list);
+    env_array = malloc(sizeof(char *) * (count + 1));
+    if (!env_array)
+        return (NULL);
     temp = env_list;
-	char	*temp1;
-	char	*temp2;
-    int i = 0;
+    i = 0;
     while (i < count)
     {
-		temp1 = ft_strdup(temp->key);
-		temp2 = temp1;
-		temp1 = ft_strjoin(temp1, "=");
-		free(temp2);
-		env_array[i] = ft_strjoin(temp1, temp->value);
-		free(temp1);
+        temp_str = ft_strjoin(temp->key, "=");
+        if (!temp_str)
+            return (free_env_array(env_array, i));
+        env_array[i] = ft_strjoin(temp_str, temp->value);
+        free(temp_str);
         if (!env_array[i])
-        {
-            int j = 0;
-            while (j < i)
-            {
-                free(env_array[j]);
-                j++;
-            }
-            free(env_array);
-            return NULL;
-        }
-        temp = temp->next;
+            return (free_env_array(env_array, i));
         i++;
+        temp = temp->next;
     }
-    env_array[count] = NULL;
-
-    return env_array;
+    return ((env_array[count] = NULL), env_array);
 }
 
 static void errL(char *path)
@@ -91,45 +96,54 @@ static void errL(char *path)
 	}
 }
 
+static void handle_no_env_path(t_jobs *jobs, t_job *job)
+{
+    if (!access(job->args[0], X_OK))
+    {
+        execve(job->args[0], job->args, env_to_double_pointer(jobs->env));
+        exit(127);
+    }
+    else
+    {
+        g_exit_status = 1;
+        ft_putstr_fd("minishell: ", 2);
+        ft_putstr_fd(job->args[0], 2);
+        ft_putendl_fd(": No such file or directory", 2);
+    }
+}
+
+static void handle_exec_path_error(t_job *job)
+{
+    g_exit_status = 1;
+    ft_putstr_fd("minishell: ", 2);
+    ft_putstr_fd(job->args[0], 2);
+    ft_putendl_fd(": command not found", 2);
+    exit(127);
+}
+
 static void runCmd(t_jobs *jobs, t_job *job)
 {
-	char *env_path;
-	char *exec_path;
+    char *env_path;
+    char *exec_path;
 
-	env_path = get_env_value(jobs->env, "PATH");
-	if (!env_path)
-	{
-		if (!access(job->args[0], X_OK))
-		{
-			execve(job->args[0], job->args, env_to_double_pointer(jobs->env));
-			exit(127);
-		}
-		else
-		{
-			g_exit_status = 1;
-			ft_putstr_fd("minishell: ", 2);
-			ft_putstr_fd(job->args[0], 2);
-			ft_putendl_fd(": No such file or directory", 2);
-		}
-	}
-	if (ft_strchr(job->args[0] ,'/'))
-	{
-		errL(job->args[0]);
-		exec_path = job->args[0];
-	}
-	else
-		exec_path = find_path(env_path, job->args[0]);
-	if (!exec_path)
-	{
-		g_exit_status = 1;
-		ft_putstr_fd("minishell: ", 2);
-		ft_putstr_fd(job->args[0], 2);
-		ft_putendl_fd(": command not found", 2);
-		exit(127);
-	}
-	g_exit_status = 0;
-	execve(exec_path, job->args, env_to_double_pointer(jobs->env));
-	exit(127);
+    env_path = get_env_value(jobs->env, "PATH");
+    if (!env_path)
+    {
+        handle_no_env_path(jobs, job);
+        return;
+    }
+    if (ft_strchr(job->args[0], '/'))
+    {
+        errL(job->args[0]);
+        exec_path = job->args[0];
+    }
+    else
+        exec_path = find_path(env_path, job->args[0]);
+    if (!exec_path)
+        handle_exec_path_error(job);
+    g_exit_status = 0;
+    execve(exec_path, job->args, env_to_double_pointer(jobs->env));
+    exit(127);
 }
 
 char	heredoc(t_jobs *jobs, t_job *job, char state)

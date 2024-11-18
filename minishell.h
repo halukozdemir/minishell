@@ -152,7 +152,6 @@ int	is_space(char c);
 
 int count_env_length(t_env *lst);
 char **env_to_char_array(t_env *env_list);
-void free_env_array(char **env_array);
 
 void	lstadd_back2(t_env **lst, t_env *new);
 char	*funckey(char *env, int end);
