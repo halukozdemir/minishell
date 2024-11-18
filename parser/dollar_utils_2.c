@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   dollar_utils_2.c                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
+/*   By: halozdem <halozdem@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/18 13:07:44 by halozdem          #+#    #+#             */
-/*   Updated: 2024/11/18 13:50:21 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/11/19 01:09:53 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,33 +20,17 @@ void	check_quotes(char c, bool *sq, bool *dq)
 		*dq = !(*dq);
 }
 
-void	replace_dollar(char **input, char *value, int start, int end)
-{
-	char	*new_input;
-	int		new_len;
-
-	new_len = ft_strlen(*input) - (end - start);
-	if (value)
-		new_len += ft_strlen(value);
-	new_input = (char *)malloc(new_len + 1);
-	if (!new_input)
-		return ;
-	ft_strlcpy(new_input, *input, start + 1);
-	if (value)
-		ft_strlcat(new_input, value, new_len + 1);
-	ft_strlcat(new_input, *input + end, new_len + 1);
-	free(*input);
-	*input = new_input;
-}
-
 char	*get_env_value(t_env *env, char *key)
 {
-	while (env)
+	t_env	*temp;
+
+	temp = env;
+	while (temp)
 	{
-		if (!ft_strncmp(env->key, key, ft_strlen(key))
-			&& ft_strlen(env->key) == ft_strlen(key))
-			return (env->value);
-		env = env->next;
+		if (!ft_strncmp(temp->key, key, ft_strlen(key))
+			&& ft_strlen(temp->key) == ft_strlen(key))
+			return (temp->value);
+		temp = temp->next;
 	}
 	return (NULL);
 }

@@ -229,7 +229,6 @@ void	set_signal(int c);
 
 // dollar_utils_2.c
 void	check_quotes(char c, bool *sq, bool *dq);
-void	replace_dollar(char **input, char *value, int start, int end);
 char	*get_env_value(t_env *env, char *key);
 int	handle_exit_status(char *new_input, int *len);
 void	expand_variable(char *input, char *new_input, t_jobs *jobs,
