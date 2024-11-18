@@ -29,12 +29,12 @@ int g_exit_status;
 # include "termios.h"
 # include <fcntl.h> // Dosya modları ve open() için gerekli
 # include <limits.h>
-# include <readline/history.h>
-# include <readline/readline.h>
-# include <signal.h>
-# include <stdbool.h>
 # include <stdio.h>
 # include <stdlib.h>
+# include <readline/readline.h>
+# include <readline/history.h>
+# include <signal.h>
+# include <stdbool.h>
 # include <unistd.h>
 
 typedef struct s_job t_job;
