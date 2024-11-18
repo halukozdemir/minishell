@@ -1,8 +1,5 @@
 {
-  "C_Cpp_Runner.useLeakSanitizer": false,
-  "C_Cpp_Runner.showCompilationTime": false,
   "C_Cpp_Runner.msvcBatchPath": "",
-  "C_Cpp_Runner.msvcSecureNoWarnings": false,
   "C_Cpp_Runner.cCompilerPath": "clang",
   "C_Cpp_Runner.cppCompilerPath": "clang++",
   "C_Cpp_Runner.debuggerPath": "lldb",
@@ -55,28 +52,8 @@
   ],
   "C_Cpp_Runner.useAddressSanitizer": false,
   "C_Cpp_Runner.useUndefinedSanitizer": false,
+  "C_Cpp_Runner.useLeakSanitizer": false,
+  "C_Cpp_Runner.showCompilationTime": false,
   "C_Cpp_Runner.useLinkTimeOptimization": false,
-  "files.associations": {
-    "minishell.h": "c",
-    "__node_handle": "c",
-    "__bit_reference": "c",
-    "__functional_base": "c",
-    "algorithm": "c",
-    "bitset": "c",
-    "chrono": "c",
-    "__memory": "c",
-    "functional": "c",
-    "iterator": "c",
-    "limits": "c",
-    "memory": "c",
-    "optional": "c",
-    "ratio": "c",
-    "system_error": "c",
-    "tuple": "c",
-    "type_traits": "c",
-    "vector": "c",
-    "sstream": "c",
-    "locale": "c",
-    "string": "c"
-  }
+  "C_Cpp_Runner.msvcSecureNoWarnings": false
 }

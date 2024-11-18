@@ -2,7 +2,7 @@ NAME = minishell
 SRC = main.c executer/run_env.c executer/executor.c executer/executor_utils.c executer/signals.c\
 parser/dollar.c parser/parser_utils_2.c parser/parser_utils.c parser/parser.c \
 builtins/cd.c builtins/ctrl_builtins.c builtins/echo.c builtins/env.c builtins/exit.c \
-builtins/export.c builtins/unset.c builtins/pwd.c builtins/exit_utils.c builtins/ctrl_builtins_utils.c builtins/ctrl_builtins_utils2.c builtins/export_utils.c parser/dollar_utils_2.c executer/command.c executer/environment.c executer/exec_error_2.c executer/exec_error.c executer/executor_utils_2.c  executer/heredoc.c executer/pipe.c executer/redirection.c
+builtins/export.c builtins/unset.c builtins/pwd.c builtins/exit_utils.c builtins/ctrl_builtins_utils.c builtins/ctrl_builtins_utils2.c builtins/export_utils.c parser/dollar_utils_2.c executer/command.c executer/environment.c executer/exec_error_2.c executer/exec_error.c executer/executor_utils_2.c  executer/heredoc.c executer/pipe.c executer/redirection.c parser/job_utils.c parser/redir_utils.c parser/shell_utils.c parser/syntax_utils.c
 
 CC = gcc
 CFLAGS = -Wall -Werror -Wextra -I$(PWD)/readline/include -g
