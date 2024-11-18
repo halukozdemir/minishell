@@ -2,9 +2,12 @@
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   dollar.c                                           :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
+/*                                                    +:+ +:+
+	+:+     */
+/*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+
+	+#+        */
+/*                                                +#+#+#+#+#+
+	+#+           */
 /*   Created: 2024/11/18 13:06:59 by halozdem          #+#    #+#             */
 /*   Updated: 2024/11/18 13:06:59 by halozdem         ###   ########.fr       */
 /*                                                                            */
@@ -64,6 +67,23 @@ int	calculate_length(char *input, t_jobs *jobs)
 	return (len);
 }
 
+void	process_variable(char *input, char *new_input, t_jobs *jobs,
+		int *indices)
+{
+	indices[0]++;
+	if (input[indices[0]] == '\0')
+		new_input[indices[1]++] = '$';
+	else if (input[indices[0]] == '?')
+	{
+		handle_exit_status(new_input, &indices[1]);
+		indices[0]++;
+	}
+	else if (ft_isalnum(input[indices[0]]) || input[indices[0]] == '_')
+		expand_variable(input, new_input, jobs, indices);
+	else
+		new_input[indices[1]++] = '$';
+}
+
 void	process_input(char *input, char *new_input, t_jobs *jobs, int *indices)
 {
 	bool	in_sq;
@@ -75,20 +95,7 @@ void	process_input(char *input, char *new_input, t_jobs *jobs, int *indices)
 	{
 		check_quotes(input[indices[0]], &in_sq, &in_dq);
 		if (input[indices[0]] == '$' && !in_sq)
-		{
-			indices[0]++;
-			if (input[indices[0]] == '\0')
-				new_input[indices[1]++] = '$';
-			else if (input[indices[0]] == '?')
-			{
-				handle_exit_status(new_input, &indices[1]);
-				indices[0]++;
-			}
-			else if (ft_isalnum(input[indices[0]]) || input[indices[0]] == '_')
-				expand_variable(input, new_input, jobs, indices);
-			else
-				new_input[indices[1]++] = '$';
-		}
+			process_variable(input, new_input, jobs, indices);
 		else
 			new_input[indices[1]++] = input[indices[0]++];
 	}

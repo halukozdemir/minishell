@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   executor.c                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/11/18 14:03:53 by halozdem          #+#    #+#             */
+/*   Updated: 2024/11/18 14:03:53 by halozdem         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../minishell.h"
 
 static void	access_error(char *file, const char *message)
@@ -12,15 +24,12 @@ static char	**env_to_double_pointer(t_env *env_list)
 {
     int count = 0;
     t_env *temp = env_list;
-    // Önce kaç tane env değişkeni olduğunu sayalım
     while (temp)
     {
         count++;
         temp = temp->next;
     }
-
-    // Double pointer dizisini oluştur
-    char **env_array = malloc(sizeof(char *) * (count + 1)); // +1 for NULL terminator
+    char **env_array = malloc(sizeof(char *) * (count + 1));
     if (!env_array)
         return NULL;
 
@@ -38,7 +47,6 @@ static char	**env_to_double_pointer(t_env *env_list)
 		free(temp1);
         if (!env_array[i])
         {
-            // Bellek tahsis hatası durumunda, daha önce ayrılmış bellekleri serbest bırak
             int j = 0;
             while (j < i)
             {
@@ -51,7 +59,7 @@ static char	**env_to_double_pointer(t_env *env_list)
         temp = temp->next;
         i++;
     }
-    env_array[count] = NULL; // Dizi sonlandırıcısı
+    env_array[count] = NULL;
 
     return env_array;
 }
@@ -144,23 +152,12 @@ char	heredoc(t_jobs *jobs, t_job *job, char state)
         i = 0;
         while (job->redir->eof[i])
 		{
-			/*
-			if (g_exit_status == 999)
-			{
-				free(buffer);
-				exit(130);
-			}
-			*/
 			buffer = readline(">");
 			if (!buffer)
 			{
 				g_exit_status = 130;
 				exit(g_exit_status);
 			}
-			/*
-			if (g_exit_status == 999)
-				continue ;
-			*/
 			len1 = ft_strlen(buffer);
 			len2 = ft_strlen(job->redir->eof[i]);
 			if (buffer && !job->redir->eof[i + 1] && state
@@ -348,7 +345,7 @@ static char pipe_handle(t_jobs *jobs, t_job *job)
 	if (pipe(pipe_fd) == -1)
 	{
 		perror("pipe");
-		exit(127); // \?
+		exit(127);
 	}
 	job->pid = fork();
 	if (job->pid == 0)
