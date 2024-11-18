@@ -146,89 +146,108 @@ static void runCmd(t_jobs *jobs, t_job *job)
     exit(127);
 }
 
-char	heredoc(t_jobs *jobs, t_job *job, char state)
+void	handle_eof_condition(t_job *job, int *i, char *buffer, int *pipe_fd)
+{
+	int	len1;
+	int	len2;
+
+	len1 = ft_strlen(buffer);
+	len2 = ft_strlen(job->redir->eof[*i]);
+	if (!job->redir->eof[*i + 1] && buffer && !(!ft_strncmp(buffer, job->redir->eof[*i], len1) && len1 == len2))
+		ft_putendl_fd(buffer, pipe_fd[1]);
+	if (!ft_strncmp(buffer, job->redir->eof[*i], len1) && len1 == len2)
+		(*i)++;
+	free(buffer);
+}
+
+void	child_process(t_jobs *jobs, t_job *job, char state, int *pipe_fd)
 {
 	char	*buffer;
+	int		i;
+
+	if (state)
+		set_signal(HDOC_SF);
+	dup2(jobs->mshell->backup_fd[0], 0);
+	i = 0;
+	while (job->redir->eof[i])
+	{
+		buffer = readline(">");
+		if (!buffer)
+		{
+			g_exit_status = 130;
+			exit(g_exit_status);
+		}
+		handle_eof_condition(job, &i, buffer, pipe_fd);
+	}
+	exit(0);
+}
+
+void	wait_for_child(pid_t pid, int *temp_status, char state)
+{
+	waitpid(pid, temp_status, 0);
+	if (state && WIFEXITED(*temp_status))
+		g_exit_status = WEXITSTATUS(*temp_status);
+}
+
+char	heredoc(t_jobs *jobs, t_job *job, char state)
+{
 	int		temp_status;
 	int		pipe_fd[2];
-	int		len1;
-	int		len2;
-    int     i;
 
 	if (pipe(pipe_fd) == -1)
 		return (EXIT_FAILURE);
 	job->pid = fork();
-    if (job->pid == 0)
-    {
-		if (state)
-			set_signal(HDOC_SF);
-		dup2(jobs->mshell->backup_fd[0], 0);
-        i = 0;
-        while (job->redir->eof[i])
-		{
-			buffer = readline(">");
-			if (!buffer)
-			{
-				g_exit_status = 130;
-				exit(g_exit_status);
-			}
-			len1 = ft_strlen(buffer);
-			len2 = ft_strlen(job->redir->eof[i]);
-			if (buffer && !job->redir->eof[i + 1] && state
-					&& !(!ft_strncmp(buffer, job->redir->eof[i], len1) && len1 == len2))
-				ft_putendl_fd(buffer, pipe_fd[1]);
-			if (!ft_strncmp(buffer, job->redir->eof[i], len1) && len1 == len2)
-				i++;
-			free(buffer);
-		}
-        exit(0);
-    	close(pipe_fd[1]);
-		dup2(pipe_fd[0], 0);
-		close(pipe_fd[0]);
-    }
-    waitpid(job->pid, &temp_status, 0);
-	if (state)
+	if (job->pid == 0)
 	{
-		if (WIFEXITED(temp_status))
-			g_exit_status = WEXITSTATUS(temp_status);
-		if (g_exit_status == 130)
-			return (EXIT_FAILURE);
+		child_process(jobs, job, state, pipe_fd);
 	}
-    return (EXIT_SUCCESS);
+	wait_for_child(job->pid, &temp_status, state);
+	if (g_exit_status == 130)
+		return (EXIT_FAILURE);
+	else
+		return (EXIT_SUCCESS);
+}
+static void	print_error_message(char *file_i, char *message)
+{
+	write(2, "minishell: ", 12);
+	write(2, file_i, ft_strlen(file_i));
+	write(2, message, ft_strlen(message));
+}
+
+static void	handle_stat_error(char *file_i)
+{
+	t_stat	stat_t;
+
+	stat(file_i, &stat_t);
+	if (S_ISDIR(stat_t.st_mode))
+	{
+		print_error_message(file_i, ": Is a directory\n");
+		exit(1);
+	}
+	else
+	{
+		print_error_message(file_i, ": No such file or directory\n");
+		exit(1);
+	}
 }
 
 static char	redir_error(t_jobs *jobs, t_job *job, char *file_i, int fd)
 {
-	t_stat	stat_t;
-
-	if (fd == -1 && (jobs->len != 1 || job->is_builtin == false))
+	if (fd == -1)
 	{
 		g_exit_status = 1;
-		write(2, "minishell: ", 12);
-		write(2, file_i, ft_strlen(file_i));
-		stat(file_i, &stat_t);
-		if (S_ISDIR(stat_t.st_mode))
+		if (jobs->len != 1 || job->is_builtin == false)
+			handle_stat_error(file_i);
+		else
 		{
-			write(2, ": Is a directory\n", 18);
-			exit(1);
+			t_stat	stat_t;
+			stat(file_i, &stat_t);
+			if (S_ISDIR(stat_t.st_mode))
+				print_error_message(file_i, ": Is a directory\n");
+			else
+				print_error_message(file_i, ": No such file or directory\n");
+			return (EXIT_FAILURE);
 		}
-		else if (!S_ISDIR(stat_t.st_mode))
-		{
-			write(2, ": No such file or directory\n", 29);
-			exit(1);
-		}
-	}
-	else if (fd == -1 && jobs->len == 1)
-	{
-		g_exit_status = 1;
-		write(2, "minishell: ", 12);
-		write(2, file_i, ft_strlen(file_i));
-		stat(file_i, &stat_t);
-		if (S_ISDIR(stat_t.st_mode))
-			write(2, ": Is a directory\n", 18);
-		else if (!S_ISDIR(stat_t.st_mode))
-			write(2, ": No such file or directory\n", 29);
-		return (EXIT_FAILURE);
 	}
 	return (EXIT_SUCCESS);
 }

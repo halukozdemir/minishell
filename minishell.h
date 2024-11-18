@@ -124,6 +124,13 @@ struct s_mshell
 	int			backup_fd[2];
 };
 
+typedef struct s_counters
+{
+	int i_out;
+	int i_app;
+	int i_in;
+} t_counters;
+
 void	free_job(t_job *job);
 void	free_redir(t_redir *redir);
 
