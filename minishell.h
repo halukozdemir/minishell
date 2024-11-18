@@ -43,6 +43,7 @@ typedef struct s_redir  t_redir;
 typedef struct s_env    t_env;
 typedef struct stat     t_stat;
 
+
 typedef struct s_split
 {
 	int		i;
@@ -165,7 +166,6 @@ char	*get_env_value(t_env *env, char *key);
 void	process_key(char **input_ptr, t_env *env, int *i, bool in_single_quotes);
 void    get_dollar(char **input_ptr, t_jobs *jobs);
 
-//void	signal_handle_exec(t_mshell *mshell);
 void	set_signal(int c);
 void	handler_sigint(int sig);
 
@@ -202,8 +202,11 @@ char	handle_exit(char **args);
 char	handle_unset(t_env **env, char **args);
 char	handle_export(t_env *env, char **args);
 
-void	display_env_vars(t_env *env);
-int	add_new_env_var(t_env **env, char *key, char *value);
+int	handle_exit_status(char *new_input, int *len);
+void	expand_variable(char *input, char *new_input, t_jobs *jobs,
+		int *indices);
 char	*extract_key(char *arg);
 char	*extract_value(char *arg);
+int	add_new_env_var(t_env **env, char *key, char *value);
+void	display_env_vars(t_env *env);
 #endif

@@ -12,6 +12,7 @@ static char ctrl_redir(t_job *temp, char *arg, char *signal)
 {
     char    *arg_net;
 
+    arg_net = NULL;
     if (*signal == 0)
     {
         *signal = -1;
@@ -65,6 +66,7 @@ static char ctrl_redir(t_job *temp, char *arg, char *signal)
         else
             *signal = -1;
     }
+    free(arg_net);
     return (EXIT_SUCCESS);
 }
 

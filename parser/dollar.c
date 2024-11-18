@@ -1,171 +1,113 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   dollar.c                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/11/18 13:06:59 by halozdem          #+#    #+#             */
+/*   Updated: 2024/11/18 13:06:59 by halozdem         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../minishell.h"
 
-void	check_quotes(char c, bool *sq, bool *dq)
+int	calculate_variable_length(char *input, int *i, t_jobs *jobs)
 {
-	if (c == '\'' && !*dq)
-		*sq = !*sq;
-	if (c == '\"' && !*sq)
-		*dq = !*dq;
-}
-
-void	replace_dollar_with_value_or_remove(char **input, char *value, int start, int end)
-{
-	char	*new_input;
-	int		new_len;
-
-	if (value)
-		new_len = ft_strlen(*input) + ft_strlen(value) - (end - start);
-	else
-		new_len = ft_strlen(*input) - (end - start);
-
-	new_input = (char *)malloc(new_len + 1);
-	if (!new_input)
-		return ;
-	ft_strlcpy(new_input, *input, start + 1);
-
-	if (value)
-		ft_strlcat(new_input, value, new_len + 1);
-
-	ft_strlcat(new_input, *input + end, new_len + 1);
-	free(*input);
-	*input = new_input;
-}
-
-char	*get_env_value(t_env *env, char *key)
-{
-	while (env)
-	{
-		if (ft_strncmp(env->key, key, ft_strlen(key)) == 0
-			&& ft_strlen(env->key) == ft_strlen(key))
-			return (env->value);
-		env = env->next;
-	}
-	return (NULL);
-}
-
-void	process_key(char **input_ptr, t_env *env, int *i, bool in_single_quotes)
-{
-	int		j;
+	int		len;
 	char	*key;
 	char	*value;
+	int		start;
 
-	if (in_single_quotes)
+	len = 0;
+	if (input[*i] == '?')
+		len += ft_strlen(ft_itoa(g_exit_status));
+	else
 	{
-		(*i)++;
-		return;
+		start = *i;
+		while (ft_isalnum(input[*i]) || input[*i] == '_')
+			(*i)++;
+		key = ft_substr(input, start, *i - start);
+		value = get_env_value(jobs->env, key);
+		if (value)
+			len += ft_strlen(value);
+		free(key);
 	}
+	return (len);
+}
 
-	j = *i;
-	while (ft_isalnum((*input_ptr)[j]) || (*input_ptr)[j] == '_')
-		j++;
-	key = ft_substr(*input_ptr, *i, j - *i);
-	value = get_env_value(env, key);
+int	calculate_length(char *input, t_jobs *jobs)
+{
+	int		len;
+	int		i;
+	bool	in_sq;
+	bool	in_dq;
 
-	if (!value && ft_strlen(key) > 0)
+	len = 0;
+	i = 0;
+	in_sq = false;
+	in_dq = false;
+	while (input[i])
 	{
-		replace_dollar_with_value_or_remove(input_ptr, NULL, *i - 1, j);
-		*i = *i - 1;
+		check_quotes(input[i], &in_sq, &in_dq);
+		if (input[i] == '$' && !in_sq)
+		{
+			i++;
+			len += calculate_variable_length(input, &i, jobs);
+		}
+		else
+		{
+			len++;
+			i++;
+		}
 	}
-	else if (value)
-	{
-		replace_dollar_with_value_or_remove(input_ptr, value, *i - 1, j);
-		*i = *i + ft_strlen(value) - 1;
-	}
+	return (len);
+}
 
-	free(key);
+void	process_input(char *input, char *new_input, t_jobs *jobs, int *indices)
+{
+	bool	in_sq;
+	bool	in_dq;
+
+	in_sq = false;
+	in_dq = false;
+	while (input[indices[0]])
+	{
+		check_quotes(input[indices[0]], &in_sq, &in_dq);
+		if (input[indices[0]] == '$' && !in_sq)
+		{
+			indices[0]++;
+			if (input[indices[0]] == '\0')
+				new_input[indices[1]++] = '$';
+			else if (input[indices[0]] == '?')
+			{
+				handle_exit_status(new_input, &indices[1]);
+				indices[0]++;
+			}
+			else if (ft_isalnum(input[indices[0]]) || input[indices[0]] == '_')
+				expand_variable(input, new_input, jobs, indices);
+			else
+				new_input[indices[1]++] = '$';
+		}
+		else
+			new_input[indices[1]++] = input[indices[0]++];
+	}
+	new_input[indices[1]] = '\0';
 }
 
 void	get_dollar(char **input_ptr, t_jobs *jobs)
 {
-	char	*input;
 	char	*new_input;
-	int		i = 0, j;
-	int		len = 0;
-	int		total_len = 0;
-	bool	in_single_quotes = false;
-	bool	in_double_quotes = false;
-	char	*key;
-	char	*value;
+	char	*input;
+	int		indices[2];
 
+	indices[0] = 0;
+	indices[1] = 0;
 	input = *input_ptr;
-
-	while (input[i])
-	{
-		check_quotes(input[i], &in_single_quotes, &in_double_quotes);
-		if (input[i] == '$' && !in_single_quotes)
-		{
-			if (!ft_strncmp(input + i, "$?", 2))
-			{
-				value = ft_itoa(g_exit_status);
-				if (value)
-					total_len += ft_strlen(value);
-				i += 2;
-				continue;
-			}
-			i++;
-			j = i;
-			while (ft_isalnum(input[j]) || input[j] == '_')
-				j++;
-			key = ft_substr(input, i, j - i);
-			value = get_env_value(jobs->env, key);
-			if (value)
-				total_len += ft_strlen(value);
-			free(key);
-			i = j;
-		}
-		else
-		{
-			total_len++;
-			i++;
-		}
-	}
-
-	new_input = (char *)malloc(total_len + 1);
+	new_input = (char *)malloc(calculate_length(input, jobs) + 1);
 	if (!new_input)
-		return;
-
-	i = 0;
-	len = 0;
-
-	while (input[i])
-	{
-		check_quotes(input[i], &in_single_quotes, &in_double_quotes);
-		if (input[i] == '$' && !in_single_quotes)
-		{
-			if (!ft_strncmp(input + i, "$?", 2))
-			{
-				value = ft_itoa(g_exit_status);
-				if (value)
-				{
-					ft_strlcpy(new_input + len, value, ft_strlen(value) + 1);
-					len += ft_strlen(value);
-					i += 2;
-					free(value);
-					continue;
-				}
-			}
-			else if (!ft_isalnum(input[i + 1]) && input[i + 1] != '_')
-				new_input[len++] = input[i++];
-			else
-			{
-				j = i + 1;
-				while (ft_isalnum(input[j]) || input[j] == '_')
-					j++;
-				key = ft_substr(input, i + 1, j - i - 1);
-				value = get_env_value(jobs->env, key);
-				free(key);
-				if (value)
-				{
-					ft_strlcpy(new_input + len, value, ft_strlen(value) + 1);
-					len += ft_strlen(value);
-				}
-				i = j;
-			}
-		}
-		else
-			new_input[len++] = input[i++];
-	}
-	new_input[len] = '\0';
+		return ;
+	process_input(input, new_input, jobs, indices);
 	free(*input_ptr);
 	*input_ptr = new_input;
 }

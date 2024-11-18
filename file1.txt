@@ -1,0 +1,20 @@
+total 280
+-rw-r--r--   1 halozdem  4223    2226 18 Kas 12:37 Makefile
+drwxr-xr-x  14 halozdem  4223     476 18 Kas 12:52 builtins
+drwxr-xr-x   6 halozdem  4223     204 18 Kas 12:52 executer
+-rw-r--r--   1 halozdem  4223     186 18 Kas 12:37 file
+-rw-r--r--   1 halozdem  4223       0 18 Kas 12:37 file1
+-rw-r--r--   1 halozdem  4223       0 18 Kas 12:52 file1.txt
+-rw-r--r--   1 halozdem  4223       0 18 Kas 12:37 file2
+-rw-r--r--   1 halozdem  4223     356 18 Kas 12:37 file3
+drwxr-xr-x   3 halozdem  4223     102 18 Kas 12:13 lib
+-rw-r--r--   1 halozdem  4223       0 18 Kas 12:37 ls
+-rw-r--r--   1 halozdem  4223   11205 18 Kas 12:51 main.c
+-rwxr-xr-x   1 halozdem  4223  100000 18 Kas 12:52 minishell
+drwxr-xr-x   3 halozdem  4223     102 18 Kas 12:13 minishell.dSYM
+-rw-r--r--   1 halozdem  4223    5945 18 Kas 12:47 minishell.h
+drwxr-xr-x  20 halozdem  4223     680 18 Kas 12:38 minishell_tester
+drwxr-xr-x   8 halozdem  4223     272 18 Kas 12:52 parser
+drwxr-xr-x   5 halozdem  4223     170 18 Kas 12:13 readline
+-rw-r--r--   1 halozdem  4223      35 18 Kas 12:13 s
+-rw-r--r--   1 halozdem  4223     837 18 Kas 12:13 yapilacaklar.txt
