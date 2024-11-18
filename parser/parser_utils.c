@@ -61,7 +61,7 @@ char	*put_word(char *word, char *input, int start, int word_len)
 char	**split_words(char *input, char **str, unsigned int word_count)
 {
 	t_split		s;
-	int	word;
+	int			word;
 
 	init_split(&s);
 	word = 0;
@@ -79,4 +79,3 @@ char	**split_words(char *input, char **str, unsigned int word_count)
 	str[word] = 0;
 	return (str);
 }
-

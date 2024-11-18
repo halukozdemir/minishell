@@ -61,4 +61,3 @@ char	**get_token(char *input)
 	str = split_words(input, str, word_count);
 	return (str);
 }
-

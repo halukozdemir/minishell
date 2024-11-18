@@ -19,7 +19,6 @@ static char ctrl_redir(t_job *temp, char *arg, char *signal)
         temp->redir->last_in = IN;
         arg_net = ft_strtrim(arg, "\"");
         temp->redir->in_files = str_arr_realloc(temp->redir->in_files, arg_net);
-        // free(arg_net);
         if (!temp->redir->in_files || append_files_order(temp, arg_net))
             return ((free(arg_net)),EXIT_FAILURE);
     }
@@ -29,7 +28,6 @@ static char ctrl_redir(t_job *temp, char *arg, char *signal)
         temp->redir->last_out = OUT;
         arg_net = ft_strtrim(arg, "\"");
         temp->redir->out_files = str_arr_realloc(temp->redir->out_files, arg_net);
-        // free(arg_net);
         if (!temp->redir->out_files || append_files_order(temp, arg_net))
             return ((free(arg_net)),EXIT_FAILURE);
     }
@@ -39,7 +37,6 @@ static char ctrl_redir(t_job *temp, char *arg, char *signal)
         temp->redir->last_in = HDOC;
         arg_net = ft_strtrim(arg, "\"");
         temp->redir->eof = str_arr_realloc(temp->redir->eof, arg_net);
-        // free(arg_net);
         if (!temp->redir->eof || append_files_order(temp, arg_net))
             return ((free(arg_net)),EXIT_FAILURE);
     }
@@ -49,7 +46,6 @@ static char ctrl_redir(t_job *temp, char *arg, char *signal)
         temp->redir->last_out = APPEND;
         arg_net = ft_strtrim(arg, "\"");
         temp->redir->appends = str_arr_realloc(temp->redir->appends, arg_net);
-        // free(arg_net);
         if (!temp->redir->appends || append_files_order(temp, arg_net))
             return ((free(arg_net)),EXIT_FAILURE);
     }
@@ -196,9 +192,9 @@ static void free_nec(t_mshell *mshell)
     temp1 = mshell->jobs->job_list;
     while (temp1)
     {
-        next = temp1->next_job; // temp1 serbest bırakılmadan önce next_job'u al
-        free_job(temp1);        // temp1'i güvenle serbest bırak
-        temp1 = next;           // Sonraki düğüme geç
+        next = temp1->next_job;
+        free_job(temp1);
+        temp1 = next;
     }
     mshell->jobs->job_list = NULL;
 }
@@ -214,11 +210,11 @@ bool is_special_char(const char *token)
 
 bool check_syntax_errors(char **tokens)
 {
-    int i = 0;
+    int i;
 
+    i = 0;
     while (tokens[i])
     {
-        // Pipe kontrolü
         if (ft_strncmp(tokens[i], "|", 2) == 0)
         {
             if (i == 0 || tokens[i + 1] == NULL || is_special_char(tokens[i + 1]))
@@ -227,8 +223,6 @@ bool check_syntax_errors(char **tokens)
                 return true;
             }
         }
-
-        // Redirection kontrolü
         if (is_special_char(tokens[i]) && ft_strncmp(tokens[i], "|", 2) != 0)
         {
             if (tokens[i + 1] == NULL || is_special_char(tokens[i + 1]))
@@ -251,7 +245,7 @@ bool check_unclosed_quotes(const char *input)
     while (*input)
     {
         if ((*input == '\'' || *input == '"') && (quote == '\0' || quote == *input))
-            quote = (quote == '\0') ? *input : '\0'; // Aç/kapa
+            quote = (quote == '\0') ? *input : '\0';
         input++;
     }
 
@@ -264,68 +258,21 @@ bool check_unclosed_quotes(const char *input)
     return false;
 }
 
-// int main(int argc, char **argv, char **env)
-// {
-//     char *input;
-//     t_env *env_list;
-//     t_mshell mshell;
-//     char **cmd;
-
-//     (void)argv;
-//     if (argc != 1)
-//         return 1;
-//     g_exit_status = 0;// struct initleme işlemi başta yapılcak
-//     mshell.is_exit = 0;
-//     env_list = envfunc2(env);
-//     mshell.jobs = ft_calloc(1, sizeof(t_jobs));
-//     mshell.jobs->mshell = &mshell;
-//     mshell.jobs->env = env_list;
-//     while (1)
-//     {
-//         mshell.jobs->job_list = ft_calloc(1, sizeof(t_job));
-//         mshell.jobs->job_list->redir = ft_calloc(1, sizeof(t_redir));
-//         set_signal(MAIN_SF);
-//         input = readline("minishell> ");
-//         if (!input)
-//             break ;
-//         // if(check_syntax_errors(input))
-//         // {
-//         //     free(input);
-//         //     continue;
-//         // }
-//         set_signal(314159);
-//         add_history(input);
-//         get_dollar(&input, mshell.jobs);
-//         if (!input[0])
-//             continue ;
-//         cmd = get_token(input);
-//         fill_jobs_from_tokens(&mshell, cmd);
-//         executor(&mshell);
-//         free_nec(&mshell);
-//         free(input);
-//     }
-//     return (0);
-// }
-
-
-
 void free_env_list(t_env *env)
 {
     t_env *temp;
 
     while (env)
     {
-        temp = env->next;    // Sonraki düğümü sakla
+        temp = env->next;
         if (env->key)
-            free(env->key);  // `key` belleğini serbest bırak
+            free(env->key);
         if (env->value)
-            free(env->value); // `value` belleğini serbest bırak
-        free(env);           // Mevcut düğümün kendisini serbest bırak
-        env = temp;          // Sonraki düğüme geç
+            free(env->value);
+        free(env);
+        env = temp;
     }
 }
-
-
 
 int main(int argc, char **argv, char **env)
 {
@@ -337,15 +284,12 @@ int main(int argc, char **argv, char **env)
     (void)argv;
     if (argc != 1)
         return 1;
-
-    // Başlangıç ayarları
     g_exit_status = 0;
     mshell.is_exit = 0;
     env_list = envfunc2(env);
     mshell.jobs = ft_calloc(1, sizeof(t_jobs));
     mshell.jobs->mshell = &mshell;
     mshell.jobs->env = env_list;
-
     while (1)
     {
         if (mshell.jobs->job_list)

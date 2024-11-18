@@ -131,88 +131,134 @@ typedef struct s_counters
 	int i_in;
 } t_counters;
 
-void	free_job(t_job *job);
-void	free_redir(t_redir *redir);
-
-void	handle_quotes(t_split *s, char *input);
-void	handle_special_chars(t_split *s, char *input);
-void	process_quotes_and_length(t_split *s, char *input);
-void	handle_word_allocation(char *input, char **str, t_split *s, int word);
-
-void	init_split(t_split *s);
-int		skip_whitespace(char *input, int i, t_split *s);
-char	**split_words(char *input, char **str, unsigned int word_count);
-
-int		word_counter(char *input);
-char	**get_token(char *input);
-char	**free_array(char **ptr, int i);
-char	*put_word(char *word, char *input, int start, int word_len);
-
-int	pipe_cont(char *input);
-int	redir_cont2(char *input, int i, char c);
-int	redir_cont(char *input);
-int	quote_cont(char *input);
-int	syntax_cont(char *input, bool *has_error);
-
-int	is_meta(char *input, int i);
-int	is_space(char c);
-
-int count_env_length(t_env *lst);
-char **env_to_char_array(t_env *env_list);
-
-void	lstadd_back2(t_env **lst, t_env *new);
-char	*funckey(char *env, int end);
-char	*funcval(char *env, int start);
-t_env	*envfunc2(char **env);
-void	process_key(char **input_ptr, t_env *env, int *i, bool in_single_quotes);
-
-void	check_quotes(char c, bool *sq, bool *dq);
-void	replace_dollar_with_value_or_remove(char **input, char *value, int start, int end);
-char	*get_env_value(t_env *env, char *key);
-void	process_key(char **input_ptr, t_env *env, int *i, bool in_single_quotes);
-void    get_dollar(char **input_ptr, t_jobs *jobs);
-
-void	set_signal(int c);
-void	handler_sigint(int sig);
-
-bool check_syntax_errors(char **tokens);
-
-char	heredoc(t_jobs *jobs, t_job *job, char state);
-char	executor(t_mshell *mshell);
-void	free_str_arr(char **str_arr);
-int 	str_arr_len(char **str_arr);
-char 	**str_arr_realloc(char **str_arr, char *element);
-char	*find_path(char *path, char *cmd);
-void	is_builtin(t_job *job);
-char	ctrl_builtins(t_jobs *jobs, t_job *job);
+//cd.c
 char	cd(char *path);
-void	echo(t_job *job);
-void	env(t_env *env);
-void	exit_d(char **args);
-char	export(t_env *env, char **args);
-char	pwd(void);
-void	unset(t_env **env, char **args);
-void    free_jobs_list(t_job *job_list);
-
-void	handle_exit_argument(char **args, char *stripped_arg);
-int	    get_exit_value(char *str);
-char	is_all_digit(char *str);
-char	exit_error(char *args, const char *message);
-char	*strip_quotes(char *str);
-
+//ctrl_builtins_utils.c
 char	handle_pwd(void);
 char	handle_cd(char *arg);
 char	handle_echo(t_job *job);
 char	handle_env(t_env *envv);
 char	handle_exit(char **args);
+//ctrl_builtins_utils_2.c
 char	handle_unset(t_env **env, char **args);
 char	handle_export(t_env *env, char **args);
+//ctrl_builtins.c
+void	is_builtin(t_job *job);
+char	ctrl_builtins(t_jobs *jobs, t_job *job);
+//echo.c
+void	print_argument(char *arg, bool *in_quote, char *quote_type);
+void	echo(t_job *job);
+//env
+void	env(t_env *env);
+//exit_utils.c
+int	calculate_result(const char *str, int *index, long long *result);
+int	get_exit_value(char *str);
+void	handle_exit_argument(char **args, char *stripped_arg);
+//exit.c
+char	*strip_quotes(char *str);
+char	exit_error(char *args, const char *message);
+char	is_all_digit(char *str);
+void	exit_d(char **args);
+//export_utils.c
+void	display_env_vars(t_env *env);
+int	add_new_env_var(t_env **env, char *key, char *value);
+char	*extract_key(char *arg);
+char	*extract_value(char *arg);
+//export.c
+char	export(t_env *env, char **args);
+//pwd.c
+char	pwd(void);
+//unset.c
+void	delete_env_node(t_env **env, t_env *node);
+void	unset(t_env **env, char **args);
 
+
+//command.c
+void	run_cmd(t_jobs *jobs, t_job *job);
+//environment.c
+int	get_env_count(t_env *env_list);
+char	**env_to_double_pointer(t_env *env_list);
+//exec_error_2.c
+void	handle_stat_error(char *file_i);
+char	redir_error(t_jobs *jobs, t_job *job, char *file_i, int fd);
+char	file_control(t_jobs *jobs, t_job *job, char *file, int fd);
+char	**free_env_array(char **env_array, int count);
+//exec_error.c
+void	access_error(char *file, const char *message);
+void	handle_execution_error(char *path);
+void	handle_no_env_path(t_jobs *jobs, t_job *job);
+void	handle_exec_path_error(t_job *job);
+void	print_error_message(char *file_i, char *message);
+//executor_utils_2.c
+void	free_job(t_job *job);
+void	free_jobs_list(t_job *job_list);
+//executor_utils.c
+void	free_str_arr(char **arr);
+int	str_arr_len(char **str_arr);
+char	**str_arr_realloc(char **str_arr, char *element);
+char	*find_path(char *path, char *cmd);
+void	free_redir(t_redir *redir);
+//executor.c
+char	no_pipe(t_jobs *jobs, t_job *job);
+void	wait_child(t_mshell *mshell);
+int	handle_job(t_mshell *mshell, t_job *temp_job);
+char	executor(t_mshell *mshell);
+//heredoc.c
+char	heredoc(t_jobs *jobs, t_job *job, char state);
+void	child_process(t_jobs *jobs, t_job *job, char state, int *pipe_fd);
+void	handle_eof_condition(t_job *job, int *i, char *buffer, int *pipe_fd);
+void	wait_for_child(pid_t pid, int *temp_status, char state);
+//pipe.c
+void	pipe_child_process(t_jobs *jobs, t_job *job, int *pipe_fd);
+char	pipe_handle(t_jobs *jobs, t_job *job);
+//redirection.c
+int	get_fd(t_jobs *jobs, t_job *job);
+int	process_redirection(t_jobs *jobs, t_job *job, int *indexes, int i);
+int	open_out_file(t_jobs *jobs, t_job *job, char *file);
+int	open_append_file(t_jobs *jobs, t_job *job, char *file);
+int	open_in_file(t_jobs *jobs, t_job *job, char *file);
+//run_env.c
+void	lstadd_back2(t_env **lst, t_env *new);
+char	*funckey(char *env, int end);
+char	*funcval(char *env, int start);
+t_env	*create_env_node(char *env_entry);
+t_env	*envfunc2(char **env);
+//signals.c
+void	handler_sigint(int sig);
+void	handler(int sig);
+void	handler_heredoc(int status);
+void	set_signal(int c);
+
+//dollar_utils_2.c
+void	check_quotes(char c, bool *sq, bool *dq);
+void	replace_dollar(char **input, char *value, int start, int end);
+char	*get_env_value(t_env *env, char *key);
 int	handle_exit_status(char *new_input, int *len);
 void	expand_variable(char *input, char *new_input, t_jobs *jobs,
 		int *indices);
-char	*extract_key(char *arg);
-char	*extract_value(char *arg);
-int	add_new_env_var(t_env **env, char *key, char *value);
-void	display_env_vars(t_env *env);
+//dollar.c
+int	calculate_variable_length(char *input, int *i, t_jobs *jobs);
+int	calculate_length(char *input, t_jobs *jobs);
+void	process_variable(char *input, char *new_input, t_jobs *jobs,
+		int *indices);
+void	process_input(char *input, char *new_input, t_jobs *jobs, int *indices);
+void	get_dollar(char **input_ptr, t_jobs *jobs);
+//parser_utils_2.c
+void	handle_quotes(t_split *s, char *input);
+void	handle_special_chars(t_split *s, char *input);
+void	process_quotes_and_length(t_split *s, char *input);
+void	handle_word_allocation(char *input, char **str, t_split *s, int word);
+//parser_utils.c
+char	**free_array(char **ptr, int i);
+void	init_split(t_split *s);
+int	skip_whitespace(char *input, int i, t_split *s);
+char	*put_word(char *word, char *input, int start, int word_len);
+char	**split_words(char *input, char **str, unsigned int word_count);
+//parser.c
+int	word_counter(char *input);
+char	**get_token(char *input);
+
+//main.c
+void free_env_list(t_env *env);
+
 #endif

@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   signals.c                                          :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/11/18 17:21:43 by halozdem          #+#    #+#             */
+/*   Updated: 2024/11/18 17:21:43 by halozdem         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../minishell.h"
 
 void	handler_sigint(int sig)
@@ -10,7 +22,7 @@ void	handler_sigint(int sig)
 	}
 }
 
-static void	handler(int sig)
+void	handler(int sig)
 {
 	if (sig == SIGINT)
 	{
@@ -22,7 +34,7 @@ static void	handler(int sig)
 	}
 }
 
-static void	handler_heredoc(int status)
+void	handler_heredoc(int status)
 {
 	if (status == SIGINT)
 	{

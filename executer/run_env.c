@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   run_env.c                                          :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/11/18 16:24:53 by halozdem          #+#    #+#             */
+/*   Updated: 2024/11/18 16:24:53 by halozdem         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../minishell.h"
 
 void	lstadd_back2(t_env **lst, t_env *new)
@@ -21,7 +33,7 @@ char	*funckey(char *env, int end)
 	char	*key;
 	int		i;
 
-	key = (char *)malloc(end + 2); // Null karakter için ek 1 yer ayrılmalı
+	key = (char *)malloc(end + 2);
 	if (!key)
 		return (NULL);
 	i = 0;
@@ -30,7 +42,7 @@ char	*funckey(char *env, int end)
 		key[i] = env[i];
 		i++;
 	}
-	key[i] = '\0'; // Stringin sonuna null karakteri eklenmeli
+	key[i] = '\0';
 	return (key);
 }
 
@@ -42,9 +54,9 @@ char	*funcval(char *env, int start)
 
 	i = 0;
 	len = 0;
-	while (env[start + len]) // Değerin uzunluğunu hesapla
+	while (env[start + len])
 		len++;
-	val = (char *)malloc(len + 1); // Null karakter için ek yer
+	val = (char *)malloc(len + 1);
 	if (!val)
 		return (NULL);
 	while (env[start])
@@ -53,36 +65,46 @@ char	*funcval(char *env, int start)
 		start++;
 		i++;
 	}
-	val[i] = '\0'; // String sonlandırıcıyı doğru yerde ekle
+	val[i] = '\0';
 	return (val);
+}
+
+t_env	*create_env_node(char *env_entry)
+{
+	int		end;
+	t_env	*new;
+
+	end = 0;
+	while (env_entry[end] && env_entry[end] != '=')
+		end++;
+	new = (t_env *)malloc(sizeof(t_env));
+	if (!new)
+		return (NULL);
+	new->key = funckey(env_entry, end - 1);
+	if (!new->key)
+		return (free(new), NULL);
+	new->value = funcval(env_entry, end + 1);
+	if (!new->value)
+		return (free(new->key), free(new), NULL);
+	new->next = NULL;
+	new->prev = NULL;
+	return (new);
 }
 
 t_env	*envfunc2(char **env)
 {
 	int		i;
-	int		end;
 	t_env	*new;
 	t_env	*lst;
 
-	lst = NULL; // Liste başlangıçta boş olmalı
+	lst = NULL;
 	i = 0;
 	while (env[i])
 	{
-		end = 0;
-		while (env[i][end] && env[i][end] != '=') // Anahtarın sonuna kadar ilerle
-			end++;
-		new = (t_env *)malloc(sizeof(t_env));
+		new = create_env_node(env[i]);
 		if (!new)
-			return (NULL);
-		new->key = funckey(env[i], end - 1); // '=' işaretinden önceki kısım anahtar
-		if (!new->key)
-			return (NULL);
-		new->value = funcval(env[i], end + 1); // '=' işaretinden sonrası değer
-		if (!new->value)
-			return (NULL);
-		new->next = NULL;
-		new->prev = NULL;
-		lstadd_back2(&lst, new); // Yeni düğümü listeye ekle
+			return (free_env_list(lst), NULL);
+		lstadd_back2(&lst, new);
 		i++;
 	}
 	return (lst);
