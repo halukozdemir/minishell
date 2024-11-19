@@ -73,7 +73,6 @@ int	process_user_input(char *input, t_mshell *mshell)
 {
 	char	**cmd;
 
-	set_signal(MAIN_SF);
 	add_history(input);
 	get_dollar(&input, mshell->jobs);
 	if (!input[0] || check_unclosed_quotes(input))

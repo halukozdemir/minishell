@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   shell_utils.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
+/*   By: halozdem <halozdem@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/18 18:52:24 by halozdem          #+#    #+#             */
-/*   Updated: 2024/11/18 18:53:05 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/11/20 01:57:10 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,7 @@ void	run_shell(t_mshell *mshell)
 	while (1)
 	{
 		reset_job_list(mshell);
+		set_signal(MAIN_SF);
 		input = readline("minishell> ");
 		if (!input)
 		{
