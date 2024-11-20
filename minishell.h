@@ -231,6 +231,7 @@ void	set_signal(int c);
 void	check_quotes(char c, bool *sq, bool *dq);
 char	*get_env_value(t_env *env, char *key);
 int	handle_exit_status(char *new_input, int *len);
+int get_variable_length(char *input, int *i, t_jobs *jobs);
 void	expand_variable(char *input, char *new_input, t_jobs *jobs,
 		int *indices);
 // dollar.c

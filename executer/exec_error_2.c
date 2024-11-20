@@ -6,7 +6,7 @@
 /*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/18 16:34:26 by halozdem          #+#    #+#             */
-/*   Updated: 2024/11/18 16:36:00 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/11/20 15:48:40 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,13 +57,15 @@ char	file_control(t_jobs *jobs, t_job *job, char *file, int fd)
 		return (EXIT_FAILURE);
 	if (access(file, F_OK))
 	{
+		g_exit_status = 1;
 		access_error(file, ": No such file or directory\n");
 		return (EXIT_FAILURE);
 	}
 	if (access(file, R_OK))
 	{
+		g_exit_status = 1;
 		access_error(file, ": Permission denied\n");
-		exit(1);
+		return (EXIT_FAILURE);
 	}
 	if (redir_error(jobs, job, file, fd))
 		return (EXIT_FAILURE);

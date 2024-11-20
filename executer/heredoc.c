@@ -6,7 +6,7 @@
 /*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/18 16:38:32 by halozdem          #+#    #+#             */
-/*   Updated: 2024/11/18 16:39:27 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/11/20 17:08:36 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,9 +21,7 @@ char	heredoc(t_jobs *jobs, t_job *job, char state)
 		return (EXIT_FAILURE);
 	job->pid = fork();
 	if (job->pid == 0)
-	{
 		child_process(jobs, job, state, pipe_fd);
-	}
 	wait_for_child(job->pid, &temp_status, state);
 	if (g_exit_status == 130)
 		return (EXIT_FAILURE);

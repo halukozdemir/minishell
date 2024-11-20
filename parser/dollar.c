@@ -18,23 +18,20 @@
 int	calculate_variable_length(char *input, int *i, t_jobs *jobs)
 {
 	int		len;
-	char	*key;
-	char	*value;
-	int		start;
+	char	*temp;
 
 	len = 0;
 	if (input[*i] == '?')
-		len += ft_strlen(ft_itoa(g_exit_status));
+	{
+		temp = ft_itoa(g_exit_status);
+		if (!temp)
+			return (0);
+		len += ft_strlen(temp);
+		free(temp);
+	}
 	else
 	{
-		start = *i;
-		while (ft_isalnum(input[*i]) || input[*i] == '_')
-			(*i)++;
-		key = ft_substr(input, start, *i - start);
-		value = get_env_value(jobs->env, key);
-		if (value)
-			len += ft_strlen(value);
-		free(key);
+		len += get_variable_length(input, i, jobs);
 	}
 	return (len);
 }

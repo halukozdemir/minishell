@@ -3,14 +3,36 @@
 /*                                                        :::      ::::::::   */
 /*   dollar_utils_2.c                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: halozdem <halozdem@student.42.fr>          +#+  +:+       +#+        */
+/*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/18 13:07:44 by halozdem          #+#    #+#             */
-/*   Updated: 2024/11/19 01:09:53 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/11/20 16:37:25 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
+
+int get_variable_length(char *input, int *i, t_jobs *jobs)
+{
+    int start = *i;
+    char *key = NULL;
+    char *value = NULL;
+    int len = 0;
+
+    while (ft_isalnum(input[*i]) || input[*i] == '_')
+        (*i)++;
+
+    key = ft_substr(input, start, *i - start);
+    if (!key)
+        return 0;
+
+    value = get_env_value(jobs->env, key);
+    if (value)
+        len += ft_strlen(value);
+
+    free(key);
+    return len;
+}
 
 void	check_quotes(char c, bool *sq, bool *dq)
 {
