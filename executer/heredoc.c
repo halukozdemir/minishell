@@ -6,7 +6,7 @@
 /*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/18 16:38:32 by halozdem          #+#    #+#             */
-/*   Updated: 2024/11/20 19:42:19 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/11/20 20:22:09 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,6 @@ void	child_process(t_jobs *jobs, t_job *job, char state, int *pipe_fd)
 
 	if (state)
 		set_signal(HDOC_SF);
-	(void)jobs;
 	dup2(jobs->mshell->backup_fd[0], 0);
 	i = 0;
 	while (job->redir->eof[i])
