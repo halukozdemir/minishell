@@ -212,9 +212,9 @@ char	pipe_handle(t_jobs *jobs, t_job *job);
 // redirection.c
 int	get_fd(t_jobs *jobs, t_job *job);
 int	process_redirection(t_jobs *jobs, t_job *job, int *indexes, int i);
-int	open_out_file(t_jobs *jobs, t_job *job, char *file);
-int	open_append_file(t_jobs *jobs, t_job *job, char *file);
-int	open_in_file(t_jobs *jobs, t_job *job, char *file);
+int	open_out_file(t_jobs *jobs, t_job *job, char *file, int indexes[4]);
+int	open_append_file(t_jobs *jobs, t_job *job, char *file, int indexes[4]);
+int	open_in_file(t_jobs *jobs, t_job *job, char *file, int indexes[4]);
 // run_env.c
 void	lstadd_back2(t_env **lst, t_env *new);
 char	*funckey(char *env, int end);

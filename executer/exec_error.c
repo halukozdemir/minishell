@@ -6,7 +6,7 @@
 /*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/18 16:31:26 by halozdem          #+#    #+#             */
-/*   Updated: 2024/11/18 16:33:50 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/11/20 15:35:13 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,18 +24,20 @@ void	handle_execution_error(char *path)
 {
 	t_stat	stat_t;
 
-	write(2, "minishell: ", 12);
-	write(2, path, ft_strlen(path));
 	stat(path, &stat_t);
 	if (S_ISDIR(stat_t.st_mode))
 	{
 		g_exit_status = 1;
+		write(2, "minishell: ", 12);
+		write(2, path, ft_strlen(path));
 		write(2, ": Is a directory\n", 18);
 		exit(126);
 	}
 	else if (!S_ISREG(stat_t.st_mode))
 	{
 		g_exit_status = 1;
+		write(2, "minishell: ", 12);
+		write(2, path, ft_strlen(path));
 		write(2, ": No such file or directory\n", 29);
 		exit(127);
 	}

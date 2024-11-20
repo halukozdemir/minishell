@@ -6,7 +6,7 @@
 /*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/18 16:37:02 by halozdem          #+#    #+#             */
-/*   Updated: 2024/11/18 16:38:23 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/11/20 15:29:16 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,13 +15,14 @@
 int	get_fd(t_jobs *jobs, t_job *job)
 {
 	int	fd;
-	int	indexes[3];
+	int	indexes[4];
 	int	i;
 
 	fd = 1;
 	indexes[0] = 0; // i_out
 	indexes[1] = 0; // i_app
 	indexes[2] = 0; // i_in
+	indexes[3] = -1;
 	i = -1;
 	while (job->redir->files_order && job->redir->files_order[++i])
 	{
@@ -29,11 +30,12 @@ int	get_fd(t_jobs *jobs, t_job *job)
 		if (fd == -1)
 		{
 			g_exit_status = 1;
-			return (-1);
+			return (dup2(jobs->mshell->backup_fd[0], 0), close(jobs->mshell->backup_fd[0])
+			, dup2(jobs->mshell->backup_fd[1], 1), close(jobs->mshell->backup_fd[1]), -1);
 		}
-		if (i < indexes[2])
+		if (!indexes[3])
 			dup2(fd, 0);
-		else
+		else if (indexes[3] == 1)
 			dup2(fd, 1);
 		close(fd);
 	}
@@ -52,19 +54,19 @@ int	process_redirection(t_jobs *jobs, t_job *job, int *indexes, int i)
 	if (job->redir->out_files && !ft_strncmp(file,
 			job->redir->out_files[indexes[0]], len)
 		&& len == (int)ft_strlen(job->redir->out_files[indexes[0]]))
-		fd = open_out_file(jobs, job, job->redir->out_files[indexes[0]++]);
+		fd = open_out_file(jobs, job, job->redir->out_files[indexes[0]++], indexes);
 	else if (job->redir->appends && !ft_strncmp(file,
 			job->redir->appends[indexes[1]], len)
 		&& len == (int)ft_strlen(job->redir->appends[indexes[1]]))
-		fd = open_append_file(jobs, job, job->redir->appends[indexes[1]++]);
+		fd = open_append_file(jobs, job, job->redir->appends[indexes[1]++], indexes);
 	else if (job->redir->in_files && !ft_strncmp(file,
 			job->redir->in_files[indexes[2]], len)
 		&& len == (int)ft_strlen(job->redir->in_files[indexes[2]]))
-		fd = open_in_file(jobs, job, job->redir->in_files[indexes[2]++]);
+		fd = open_in_file(jobs, job, job->redir->in_files[indexes[2]++], indexes);
 	return (fd);
 }
 
-int	open_out_file(t_jobs *jobs, t_job *job, char *file)
+int	open_out_file(t_jobs *jobs, t_job *job, char *file, int indexes[4])
 {
 	int	fd;
 
@@ -72,10 +74,11 @@ int	open_out_file(t_jobs *jobs, t_job *job, char *file)
 	if (file_control(jobs, job, file, fd))
 		return (-1);
 	job->redir->out_file = fd;
+	indexes[3] = 1;
 	return (fd);
 }
 
-int	open_append_file(t_jobs *jobs, t_job *job, char *file)
+int	open_append_file(t_jobs *jobs, t_job *job, char *file, int indexes[4])
 {
 	int	fd;
 
@@ -83,10 +86,11 @@ int	open_append_file(t_jobs *jobs, t_job *job, char *file)
 	if (file_control(jobs, job, file, fd))
 		return (-1);
 	job->redir->append_file = fd;
+	indexes[3] = 1;
 	return (fd);
 }
 
-int	open_in_file(t_jobs *jobs, t_job *job, char *file)
+int	open_in_file(t_jobs *jobs, t_job *job, char *file, int indexes[4])
 {
 	int	fd;
 
@@ -94,5 +98,6 @@ int	open_in_file(t_jobs *jobs, t_job *job, char *file)
 	if (file_control(jobs, job, file, fd))
 		return (-1);
 	job->redir->in_file = fd;
+	indexes[3] = 0;
 	return (fd);
 }
