@@ -6,7 +6,7 @@
 /*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/16 16:37:42 by halozdem          #+#    #+#             */
-/*   Updated: 2024/11/18 14:03:35 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/11/20 21:54:00 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,24 +50,24 @@ int	get_exit_value(char *str)
 	return (result);
 }
 
-void	handle_exit_argument(char **args, char *stripped_arg)
+void	handle_exit_argument(t_jobs *jobs, char **args, char *stripped_arg)
 {
 	int	exit_status;
 
 	if (is_all_digit(stripped_arg) == EXIT_FAILURE)
 	{
-		exit_error(args[1], "numeric argument required");
+		exit_error(jobs, args[1], "numeric argument required");
 		free(stripped_arg);
-		exit(g_exit_status);
+		exit(jobs->mshell->doll_quest);
 	}
 	if (args[2])
 	{
-		g_exit_status = 1;
+		jobs->mshell->doll_quest = 1;
 		write(2, "minishell: exit: too many arguments\n", 36);
 		free(stripped_arg);
 		return ;
 	}
 	exit_status = get_exit_value(stripped_arg);
-	g_exit_status = exit_status;
+	jobs->mshell->doll_quest = exit_status;
 	free(stripped_arg);
 }

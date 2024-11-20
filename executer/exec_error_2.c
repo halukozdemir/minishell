@@ -6,7 +6,7 @@
 /*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/18 16:34:26 by halozdem          #+#    #+#             */
-/*   Updated: 2024/11/20 15:48:40 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/11/20 21:57:18 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@ char	redir_error(t_jobs *jobs, t_job *job, char *file_i, int fd)
 
 	if (fd == -1)
 	{
-		g_exit_status = 1;
+		jobs->mshell->doll_quest = 1;
 		if (jobs->len != 1 || job->is_builtin == false)
 			handle_stat_error(file_i);
 		else
@@ -57,13 +57,13 @@ char	file_control(t_jobs *jobs, t_job *job, char *file, int fd)
 		return (EXIT_FAILURE);
 	if (access(file, F_OK))
 	{
-		g_exit_status = 1;
+		jobs->mshell->doll_quest = 1;
 		access_error(file, ": No such file or directory\n");
 		return (EXIT_FAILURE);
 	}
 	if (access(file, R_OK))
 	{
-		g_exit_status = 1;
+		jobs->mshell->doll_quest = 1;
 		access_error(file, ": Permission denied\n");
 		return (EXIT_FAILURE);
 	}

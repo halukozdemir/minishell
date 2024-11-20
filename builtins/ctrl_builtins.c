@@ -44,19 +44,19 @@ void	is_builtin(t_job *job)
 char	ctrl_builtins(t_jobs *jobs, t_job *job)
 {
 	if (!ft_strncmp(job->args[0], "pwd", 3) && ft_strlen(job->args[0]) == 3)
-		return (handle_pwd());
+		return (handle_pwd(jobs));
 	else if (!ft_strncmp(job->args[0], "cd", 2)
 		&& ft_strlen(job->args[0]) == 2)
-		return (handle_cd(job->args[1], jobs->env));
+		return (handle_cd(jobs, job->args[1], jobs->env));
 	else if (!ft_strncmp(job->args[0], "echo", 4)
 		&& ft_strlen(job->args[0]) == 4)
-		return (handle_echo(job));
+		return (handle_echo(jobs, job));
 	else if (!ft_strncmp(job->args[0], "env", 3)
 		&& ft_strlen(job->args[0]) == 3)
-		return (handle_env(jobs->env));
+		return (handle_env(jobs));
 	else if (!ft_strncmp(job->args[0], "exit", 4)
 		&& ft_strlen(job->args[0]) == 4)
-		return (handle_exit(job->args));
+		return (handle_exit(jobs, job->args));
 	else if (!ft_strncmp(job->args[0], "unset", 5)
 		&& ft_strlen(job->args[0]) == 5)
 		return (handle_unset(&jobs->env, job->args));

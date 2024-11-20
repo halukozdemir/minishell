@@ -59,9 +59,9 @@ static int	is_valid_identifier(char *str, char state)
 	return (EXIT_SUCCESS);
 }
 
-static int	handle_export_error(char *args, const char *message)
+static int	handle_export_error(t_jobs *jobs, char *args, const char *message)
 {
-	g_exit_status = 1;
+	jobs->mshell->doll_quest = 1;
 	write(2, "minishell: export: `", 21);
 	write(2, args, ft_strlen(args));
 	write(2, "': ", 3);
@@ -70,7 +70,7 @@ static int	handle_export_error(char *args, const char *message)
 	return (EXIT_FAILURE);
 }
 
-static int	process_argument(t_env *env, char *arg)
+static int	process_argument(t_jobs *jobs, char *arg)
 {
 	char	*key;
 	char	*value;
@@ -78,11 +78,11 @@ static int	process_argument(t_env *env, char *arg)
 
 	key = extract_key(arg);
 	if (is_valid_identifier(key, 0))
-		return (handle_export_error(arg, "not a valid identifier"));
+		return (handle_export_error(jobs, arg, "not a valid identifier"));
 	value = extract_value(arg);
-	state = update_env_value(env, key, value);
+	state = update_env_value(jobs->env, key, value);
 	if (state == -1
-		|| (!state && add_new_env_var(&env, key, value) == EXIT_FAILURE))
+		|| (!state && add_new_env_var(&jobs->env, key, value) == EXIT_FAILURE))
 	{
 		free(key);
 		free(value);
@@ -93,20 +93,20 @@ static int	process_argument(t_env *env, char *arg)
 	return (EXIT_SUCCESS);
 }
 
-char	export(t_env *env, char **args)
+char	export(t_jobs *jobs, char **args)
 {
 	int	i;
 
 	if (!args[1])
 	{
-		display_env_vars(env);
-		g_exit_status = 0;
+		display_env_vars(jobs->env);
+		jobs->mshell->doll_quest = 0;
 		return (EXIT_SUCCESS);
 	}
 	i = 1;
 	while (args[i])
 	{
-		if (process_argument(env, args[i]) == EXIT_FAILURE)
+		if (process_argument(jobs, args[i]) == EXIT_FAILURE)
 			return (EXIT_FAILURE);
 		i++;
 	}

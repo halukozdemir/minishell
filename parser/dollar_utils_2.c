@@ -6,7 +6,7 @@
 /*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/18 13:07:44 by halozdem          #+#    #+#             */
-/*   Updated: 2024/11/20 16:37:25 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/11/20 22:00:47 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,11 +57,11 @@ char	*get_env_value(t_env *env, char *key)
 	return (NULL);
 }
 
-int	handle_exit_status(char *new_input, int *len)
+int	handle_exit_status(t_jobs *jobs, char *new_input, int *len)
 {
 	char	*value;
 
-	value = ft_itoa(g_exit_status);
+	value = ft_itoa(jobs->mshell->doll_quest);
 	if (!value)
 		return (0);
 	ft_strlcpy(new_input + *len, value, ft_strlen(value) + 1);

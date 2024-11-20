@@ -6,22 +6,22 @@
 /*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/16 16:57:40 by halozdem          #+#    #+#             */
-/*   Updated: 2024/11/16 16:58:08 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/11/20 22:04:11 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
 
-char	handle_unset(t_env **env, char **args)
+char	handle_unset(t_jobs *jobs, t_env **env, char **args)
 {
-	unset(env, args);
+	unset(jobs, env, args);
 	return (EXIT_SUCCESS);
 }
 
-char	handle_export(t_env *env, char **args)
+char	handle_export(t_jobs *jobs, char **args)
 {
 	char	state;
 
-	state = export(env, args);
+	state = export(jobs, args);
 	return (state);
 }

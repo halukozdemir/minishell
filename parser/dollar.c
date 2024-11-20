@@ -23,7 +23,7 @@ int	calculate_variable_length(char *input, int *i, t_jobs *jobs)
 	len = 0;
 	if (input[*i] == '?')
 	{
-		temp = ft_itoa(g_exit_status);
+		temp = ft_itoa(jobs->mshell->doll_quest);
 		if (!temp)
 			return (0);
 		len += ft_strlen(temp);

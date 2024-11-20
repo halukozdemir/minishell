@@ -13,8 +13,6 @@
 #ifndef MINISHELL_H
 # define MINISHELL_H
 
-int g_exit_status;
-
 # define SPECIAL_CHARS "<>| \0"
 # define QUOTES "'\""
 
@@ -119,6 +117,7 @@ struct s_mshell
 	t_jobs *jobs;
 	t_termios termios;
 	char is_exit;
+	int	doll_quest;
 	char **success_arr;
 	int backup_fd[2];
 };
@@ -131,16 +130,16 @@ typedef struct s_counters
 } t_counters;
 
 // cd.c
-char	cd(char *path, t_env *env);
+char	cd(t_jobs *jobs, char *path, t_env *env);
 // ctrl_builtins_utils.c
-char	handle_pwd(void);
-char	handle_cd(char *arg, t_env *env);
-char	handle_echo(t_job *job);
-char	handle_env(t_env *envv);
-char	handle_exit(char **args);
+char	handle_pwd(t_jobs *jobs);
+char	handle_cd(t_jobs *jobs, char *arg, t_env *env);
+char	handle_echo(t_jobs *jobs, t_job *job);
+char	handle_env(t_jobs *jobs);
+char	handle_exit(t_jobs *jobs, char **args);
 // ctrl_builtins_utils_2.c
-char	handle_unset(t_env **env, char **args);
-char	handle_export(t_env *env, char **args);
+char	handle_unset(t_jobs *jobs, t_env **env, char **args);
+char	handle_export(t_jobs *jobs, char **args);
 // ctrl_builtins.c
 void	is_builtin(t_job *job);
 char	ctrl_builtins(t_jobs *jobs, t_job *job);
@@ -152,24 +151,24 @@ void	env(t_env *env);
 // exit_utils.c
 int	calculate_result(const char *str, int *index, long long *result);
 int	get_exit_value(char *str);
-void	handle_exit_argument(char **args, char *stripped_arg);
+void	handle_exit_argument(t_jobs *jobs, char **args, char *stripped_arg);
 // exit.c
 char	*strip_quotes(char *str);
-char	exit_error(char *args, const char *message);
+char	exit_error(t_jobs *jobs, char *args, const char *message);
 char	is_all_digit(char *str);
-void	exit_d(char **args);
+void	exit_d(t_jobs *jobs, char **args);
 // export_utils.c
 void	display_env_vars(t_env *env);
 int	add_new_env_var(t_env **env, char *key, char *value);
 char	*extract_key(char *arg);
 char	*extract_value(char *arg);
 // export.c
-char	export(t_env *env, char **args);
+char	export(t_jobs *jobs, char **args);
 // pwd.c
 char	pwd(void);
 // unset.c
 void	delete_env_node(t_env **env, t_env *node);
-void	unset(t_env **env, char **args);
+void	unset(t_jobs *jobs, t_env **env, char **args);
 
 // command.c
 void	run_cmd(t_jobs *jobs, t_job *job);
@@ -182,10 +181,10 @@ char	redir_error(t_jobs *jobs, t_job *job, char *file_i, int fd);
 char	file_control(t_jobs *jobs, t_job *job, char *file, int fd);
 char	**free_env_array(char **env_array, int count);
 // exec_error.c
-void	access_error(char *file, const char *message);
-void	handle_execution_error(char *path);
+void	access_error(t_jobs *jobs, char *file, const char *message);
+void	handle_execution_error(t_jobs *jobs, char *path);
 void	handle_no_env_path(t_jobs *jobs, t_job *job);
-void	handle_exec_path_error(t_job *job);
+void	handle_exec_path_error(t_jobs *jobs, t_job *job);
 void	print_error_message(char *file_i, char *message);
 // executor_utils_2.c
 void	free_job(t_job *job);
@@ -205,7 +204,7 @@ char	executor(t_mshell *mshell);
 char	heredoc(t_jobs *jobs, t_job *job, char state);
 void	child_process(t_jobs *jobs, t_job *job, char state, int *pipe_fd);
 void	handle_eof_condition(t_job *job, int *i, char *buffer, int *pipe_fd);
-void	wait_for_child(pid_t pid, int *temp_status, char state);
+void	wait_for_child(t_jobs *jobs, pid_t pid, int *temp_status, char state);
 // pipe.c
 void	pipe_child_process(t_jobs *jobs, t_job *job, int *pipe_fd);
 char	pipe_handle(t_jobs *jobs, t_job *job);
@@ -230,7 +229,7 @@ void	set_signal(int c);
 // dollar_utils_2.c
 void	check_quotes(char c, bool *sq, bool *dq);
 char	*get_env_value(t_env *env, char *key);
-int	handle_exit_status(char *new_input, int *len);
+int	handle_exit_status(t_jobs *jobs, char *new_input, int *len);
 int get_variable_length(char *input, int *i, t_jobs *jobs);
 void	expand_variable(char *input, char *new_input, t_jobs *jobs,
 		int *indices);

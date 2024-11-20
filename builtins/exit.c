@@ -34,14 +34,14 @@ char	*strip_quotes(char *str)
 	return (new_str);
 }
 
-char	exit_error(char *args, const char *message)
+char	exit_error(t_jobs *jobs, char *args, const char *message)
 {
 	write(2, "minishell: exit: ", 17);
 	write(2, args, ft_strlen(args));
 	write(2, ": ", 2);
 	write(2, message, ft_strlen(message));
 	write(2, "\n", 1);
-	g_exit_status = 255;
+	jobs->mshell->doll_quest = 255;
 	return (EXIT_FAILURE);
 }
 
@@ -63,7 +63,7 @@ char	is_all_digit(char *str)
 	return (EXIT_SUCCESS);
 }
 
-void	exit_d(char **args)
+void	exit_d(t_jobs *jobs, char **args)
 {
 	char	*stripped_arg;
 
@@ -73,12 +73,12 @@ void	exit_d(char **args)
 		stripped_arg = strip_quotes(args[1]);
 		if (!stripped_arg)
 		{
-			exit_error(args[1], "memory allocation error");
-			exit(g_exit_status);
+			exit_error(jobs, args[1], "memory allocation error");
+			exit(jobs->mshell->doll_quest);
 		}
-		handle_exit_argument(args, stripped_arg);
+		handle_exit_argument(jobs, args, stripped_arg);
 	}
 	else
-		g_exit_status = 0;
-	exit(g_exit_status);
+		jobs->mshell->doll_quest = 0;
+	exit(jobs->mshell->doll_quest);
 }

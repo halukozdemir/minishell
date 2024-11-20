@@ -27,7 +27,7 @@ char	no_pipe(t_jobs *jobs, t_job *job)
 		{
 			set_signal(CHILD_SF);
 			run_cmd(jobs, job);
-			exit(g_exit_status);
+			exit(jobs->mshell->doll_quest);
 		}
 	}
 	else
@@ -54,9 +54,9 @@ void	wait_child(t_mshell *mshell)
 		if (mshell->jobs->len == 1 && temp_job->is_builtin == true)
 			break ;
 		if (WIFEXITED(temp_status))
-			g_exit_status = WEXITSTATUS(temp_status);
+			mshell->doll_quest = WEXITSTATUS(temp_status);
 		else if (WIFSIGNALED(temp_status))
-			g_exit_status = 128 + WTERMSIG(temp_status);
+			mshell->doll_quest = 128 + WTERMSIG(temp_status);
 		temp_job = temp_job->next_job;
 	}
 }
@@ -74,11 +74,11 @@ int	handle_job(t_mshell *mshell, t_job *temp_job)
 	{
 		if (temp_job->redir->eof && heredoc(mshell->jobs, temp_job, 0))
 			return (0);
-		if (g_exit_status == 130)
+		if (mshell->doll_quest == 130)
 			return (0);
 		if (pipe_handle(mshell->jobs, temp_job))
 			return (EXIT_SUCCESS);
-		g_exit_status = 0;
+		mshell->doll_quest = 0;
 	}
 	return (1);
 }

@@ -6,46 +6,46 @@
 /*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/16 16:53:26 by halozdem          #+#    #+#             */
-/*   Updated: 2024/11/20 20:11:40 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/11/20 21:54:24 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
 
-char	handle_pwd(void)
+char	handle_pwd(t_jobs *jobs)
 {
 	char	state;
 
 	state = pwd();
-	g_exit_status = state;
+	jobs->mshell->doll_quest = state;
 	return (state);
 }
 
-char	handle_cd(char *arg, t_env *env)
+char	handle_cd(t_jobs *jobs, char *arg, t_env *env)
 {
 	char	state;
 
-	state = cd(arg, env);
-	g_exit_status = state;
+	state = cd(jobs, arg, env);
+	jobs->mshell->doll_quest = state;
 	return (state);
 }
 
-char	handle_echo(t_job *job)
+char	handle_echo(t_jobs *jobs, t_job *job)
 {
 	echo(job);
-	g_exit_status = 0;
+	jobs->mshell->doll_quest = 0;
 	return (EXIT_SUCCESS);
 }
 
-char	handle_env(t_env *envv)
+char	handle_env(t_jobs *jobs)
 {
-	env(envv);
-	g_exit_status = 0;
+	env(jobs->env);
+	jobs->mshell->doll_quest = 0;
 	return (EXIT_SUCCESS);
 }
 
-char	handle_exit(char **args)
+char	handle_exit(t_jobs *jobs, char **args)
 {
-	exit_d(args);
+	exit_d(jobs, args);
 	return (EXIT_SUCCESS);
 }

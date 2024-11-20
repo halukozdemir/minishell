@@ -12,7 +12,7 @@
 
 #include "../minishell.h"
 
-char	cd(char *path, t_env *env)
+char	cd(t_jobs *jobs, char *path, t_env *env)
 {
 	if (!path)
 	{
@@ -22,7 +22,7 @@ char	cd(char *path, t_env *env)
 	}
 	if (chdir(path) == -1)
 	{
-		g_exit_status = 1;
+		jobs->mshell->doll_quest = 1;
 		perror("cd");
 		return (EXIT_FAILURE);
 	}

@@ -25,7 +25,7 @@ void	delete_env_node(t_env **env, t_env *node)
 	free(node);
 }
 
-void	unset(t_env **env, char **args)
+void	unset(t_jobs *jobs, t_env **env, char **args)
 {
 	t_env		*temp;
 	size_t		len_key;
@@ -48,5 +48,5 @@ void	unset(t_env **env, char **args)
 		}
 		i++;
 	}
-	g_exit_status = 0;
+	jobs->mshell->doll_quest = 0;
 }
