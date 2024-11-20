@@ -6,7 +6,7 @@
 /*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/18 16:38:32 by halozdem          #+#    #+#             */
-/*   Updated: 2024/11/20 17:08:36 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/11/20 19:42:19 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,9 +19,12 @@ char	heredoc(t_jobs *jobs, t_job *job, char state)
 
 	if (pipe(pipe_fd) == -1)
 		return (EXIT_FAILURE);
+	dup2(pipe_fd[0], 0);
 	job->pid = fork();
 	if (job->pid == 0)
 		child_process(jobs, job, state, pipe_fd);
+	close(pipe_fd[0]);
+	close(pipe_fd[1]);
 	wait_for_child(job->pid, &temp_status, state);
 	if (g_exit_status == 130)
 		return (EXIT_FAILURE);
@@ -36,6 +39,7 @@ void	child_process(t_jobs *jobs, t_job *job, char state, int *pipe_fd)
 
 	if (state)
 		set_signal(HDOC_SF);
+	(void)jobs;
 	dup2(jobs->mshell->backup_fd[0], 0);
 	i = 0;
 	while (job->redir->eof[i])
@@ -48,6 +52,8 @@ void	child_process(t_jobs *jobs, t_job *job, char state, int *pipe_fd)
 		}
 		handle_eof_condition(job, &i, buffer, pipe_fd);
 	}
+	close(pipe_fd[0]);
+	close(pipe_fd[1]);
 	exit(0);
 }
 
@@ -60,7 +66,7 @@ void	handle_eof_condition(t_job *job, int *i, char *buffer, int *pipe_fd)
 	len2 = ft_strlen(job->redir->eof[*i]);
 	if (!job->redir->eof[*i + 1] && buffer && !(!ft_strncmp(buffer,
 				job->redir->eof[*i], len1) && len1 == len2))
-		ft_putendl_fd(buffer, pipe_fd[1]);
+					ft_putendl_fd(buffer, pipe_fd[1]);
 	if (!ft_strncmp(buffer, job->redir->eof[*i], len1) && len1 == len2)
 		(*i)++;
 	free(buffer);

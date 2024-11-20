@@ -6,7 +6,7 @@
 /*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/18 16:37:02 by halozdem          #+#    #+#             */
-/*   Updated: 2024/11/20 15:29:16 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/11/20 19:45:33 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,8 @@ int	get_fd(t_jobs *jobs, t_job *job)
 			dup2(fd, 0);
 		else if (indexes[3] == 1)
 			dup2(fd, 1);
-		close(fd);
+		if (fd != 1)
+			close(fd);
 	}
 	return (fd);
 }

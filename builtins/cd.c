@@ -14,6 +14,9 @@
 
 char	cd(char *path)
 {
+	//char	*home;
+
+	//home = get_va
 	if (chdir(path) == -1)
 	{
 		g_exit_status = 1;

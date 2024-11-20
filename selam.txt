@@ -1,0 +1,21 @@
+fd: 7
+Makefile
+asdasd
+builtins
+deneme
+deneme.txt
+eof
+ewadd
+executer
+lib
+main.c
+minishell
+minishell.dSYM
+minishell.h
+minishell_tester
+parser
+readline
+readline-8.2
+readline-8.2.tar.gz
+selam.txt
+yapilacaklar.txt
