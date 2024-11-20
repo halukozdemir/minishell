@@ -47,7 +47,7 @@ char	ctrl_builtins(t_jobs *jobs, t_job *job)
 		return (handle_pwd());
 	else if (!ft_strncmp(job->args[0], "cd", 2)
 		&& ft_strlen(job->args[0]) == 2)
-		return (handle_cd(job->args[1]));
+		return (handle_cd(job->args[1], jobs->env));
 	else if (!ft_strncmp(job->args[0], "echo", 4)
 		&& ft_strlen(job->args[0]) == 4)
 		return (handle_echo(job));

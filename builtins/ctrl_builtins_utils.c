@@ -6,7 +6,7 @@
 /*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/16 16:53:26 by halozdem          #+#    #+#             */
-/*   Updated: 2024/11/18 17:03:55 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/11/20 20:11:40 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,11 +21,11 @@ char	handle_pwd(void)
 	return (state);
 }
 
-char	handle_cd(char *arg)
+char	handle_cd(char *arg, t_env *env)
 {
 	char	state;
 
-	state = cd(arg);
+	state = cd(arg, env);
 	g_exit_status = state;
 	return (state);
 }

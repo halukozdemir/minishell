@@ -131,10 +131,10 @@ typedef struct s_counters
 } t_counters;
 
 // cd.c
-char	cd(char *path);
+char	cd(char *path, t_env *env);
 // ctrl_builtins_utils.c
 char	handle_pwd(void);
-char	handle_cd(char *arg);
+char	handle_cd(char *arg, t_env *env);
 char	handle_echo(t_job *job);
 char	handle_env(t_env *envv);
 char	handle_exit(char **args);

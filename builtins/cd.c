@@ -12,11 +12,14 @@
 
 #include "../minishell.h"
 
-char	cd(char *path)
+char	cd(char *path, t_env *env)
 {
-	//char	*home;
-
-	//home = get_va
+	if (!path)
+	{
+		path = get_env_value(env, "HOME");
+		if (!path)
+			return (EXIT_FAILURE);
+	}
 	if (chdir(path) == -1)
 	{
 		g_exit_status = 1;
