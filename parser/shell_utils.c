@@ -6,7 +6,7 @@
 /*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/18 18:52:24 by halozdem          #+#    #+#             */
-/*   Updated: 2024/11/20 22:00:38 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/11/21 15:16:55 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,7 @@ void	run_shell(t_mshell *mshell)
 			free(input);
 			break ;
 		}
+		set_signal(3);
 		if (process_user_input(input, mshell) == EXIT_FAILURE)
 			continue ;
 		executor(mshell);
