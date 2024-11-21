@@ -6,7 +6,7 @@
 /*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/18 16:38:32 by halozdem          #+#    #+#             */
-/*   Updated: 2024/11/21 13:14:30 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/11/21 13:58:01 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,7 +62,7 @@ void	handle_eof_condition(t_job *job, int *i, char *buffer, int *pipe_fd)
 	len2 = ft_strlen(job->redir->eof[*i]);
 	if (!job->redir->eof[*i + 1] && buffer && !(!ft_strncmp(buffer,
 				job->redir->eof[*i], len1) && len1 == len2))
-					ft_putendl_fd(buffer, pipe_fd[1]);
+		ft_putendl_fd(buffer, pipe_fd[1]);
 	if (!ft_strncmp(buffer, job->redir->eof[*i], len1) && len1 == len2)
 		(*i)++;
 	free(buffer);

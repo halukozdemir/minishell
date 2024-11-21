@@ -2,9 +2,12 @@
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
+/*                                                    +:+ +:+
+	+:+     */
+/*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+
+	+#+        */
+/*                                                +#+#+#+#+#+
+	+#+           */
 /*   Created: 2024/11/18 19:02:33 by halozdem          #+#    #+#             */
 /*   Updated: 2024/11/18 19:02:33 by halozdem         ###   ########.fr       */
 /*                                                                            */
@@ -27,45 +30,45 @@
 # include "termios.h"
 # include <fcntl.h> // Dosya modları ve open() için gerekli
 # include <limits.h>
-# include <stdio.h>
-# include <stdlib.h>
-# include <readline/readline.h>
 # include <readline/history.h>
+# include <readline/readline.h>
 # include <signal.h>
 # include <stdbool.h>
+# include <stdio.h>
+# include <stdlib.h>
 # include <unistd.h>
 
-typedef struct s_job t_job;
-typedef struct s_jobs t_jobs;
-typedef struct s_redir t_redir;
-typedef struct s_env t_env;
-typedef struct stat t_stat;
+typedef struct s_job	t_job;
+typedef struct s_jobs	t_jobs;
+typedef struct s_redir	t_redir;
+typedef struct s_env	t_env;
+typedef struct stat		t_stat;
 
 typedef struct s_split
 {
-	int i;
-	int count;
-	int word_len;
-	bool in_quote;
-	bool in_word;
-	char quote_type;
-	int start;
-} t_split;
+	int		i;
+	int		count;
+	int		word_len;
+	bool	in_quote;
+	bool	in_word;
+	char	quote_type;
+	int		start;
+}	t_split;
 
 typedef struct s_env
 {
-	char *key;
-	char *value;
-	t_env *next;
-	t_env *prev;
-} t_env;
+	char	*key;
+	char	*value;
+	t_env	*next;
+	t_env	*prev;
+}	t_env;
 
 typedef enum e_type
 {
 	NONE_TYPE,
 	PIPE,
 	EXEC
-} t_type;
+}	t_type;
 
 typedef enum e_bool
 {
@@ -74,60 +77,60 @@ typedef enum e_bool
 	APPEND,
 	IN,
 	HDOC
-} t_bool;
+}	t_bool;
 
 struct s_redir
 {
-	int in_file;
-	int out_file;
-	int append_file;
-	t_bool last_out;
-	t_bool last_in;
-	char **in_files;
-	char **out_files;
-	char **appends;
-	char **eof;
-	char **files_order;
+	int		in_file;
+	int		out_file;
+	int		append_file;
+	t_bool	last_out;
+	t_bool	last_in;
+	char	**in_files;
+	char	**out_files;
+	char	**appends;
+	char	**eof;
+	char	**files_order;
 };
 
 struct s_job
 {
-	bool is_builtin;
-	pid_t pid;
-	char **args;
-	t_redir *redir;
-	t_job *next_job;
+	bool	is_builtin;
+	pid_t	pid;
+	char	**args;
+	t_redir	*redir;
+	t_job	*next_job;
 };
 
-typedef struct s_mshell t_mshell;
+typedef struct s_mshell	t_mshell;
 
 struct s_jobs
 {
-	t_mshell *mshell;
-	t_type type;
-	t_job *job_list;
-	t_env *env; // t_env * olarak güncellendi
-	int len;
+	t_mshell	*mshell;
+	t_type		type;
+	t_job		*job_list;
+	t_env		*env; // t_env * olarak güncellendi
+	int			len;
 };
 
-typedef struct termios t_termios;
+typedef struct termios	t_termios;
 
 struct s_mshell
 {
-	t_jobs *jobs;
-	t_termios termios;
-	char is_exit;
-	int	doll_quest;
-	char **success_arr;
-	int backup_fd[2];
+	t_jobs		*jobs;
+	t_termios	termios;
+	char		is_exit;
+	int			doll_quest;
+	char		**success_arr;
+	int			backup_fd[2];
 };
 
 typedef struct s_counters
 {
-	int i_out;
-	int i_app;
-	int i_in;
-} t_counters;
+	int	i_out;
+	int	i_app;
+	int	i_in;
+}	t_counters;
 
 // cd.c
 char	cd(t_jobs *jobs, char *path, t_env *env);
@@ -149,8 +152,8 @@ void	echo(t_job *job);
 // env
 void	env(t_env *env);
 // exit_utils.c
-int	calculate_result(const char *str, int *index, long long *result);
-int	get_exit_value(char *str);
+int		calculate_result(const char *str, int *index, long long *result);
+int		get_exit_value(char *str);
 void	handle_exit_argument(t_jobs *jobs, char **args, char *stripped_arg);
 // exit.c
 char	*strip_quotes(char *str);
@@ -159,7 +162,7 @@ char	is_all_digit(char *str);
 void	exit_d(t_jobs *jobs, char **args);
 // export_utils.c
 void	display_env_vars(t_env *env);
-int	add_new_env_var(t_env **env, char *key, char *value);
+int		add_new_env_var(t_env **env, char *key, char *value);
 char	*extract_key(char *arg);
 char	*extract_value(char *arg);
 // export.c
@@ -173,7 +176,7 @@ void	unset(t_jobs *jobs, t_env **env, char **args);
 // command.c
 void	run_cmd(t_jobs *jobs, t_job *job);
 // environment.c
-int	get_env_count(t_env *env_list);
+int		get_env_count(t_env *env_list);
 char	**env_to_double_pointer(t_env *env_list);
 // exec_error_2.c
 void	handle_stat_error(char *file_i);
@@ -191,14 +194,14 @@ void	free_job(t_job *job);
 void	free_jobs_list(t_job *job_list);
 // executor_utils.c
 void	free_str_arr(char **arr);
-int	str_arr_len(char **str_arr);
+int		str_arr_len(char **str_arr);
 char	**str_arr_realloc(char **str_arr, char *element);
 char	*find_path(char *path, char *cmd);
 void	free_redir(t_redir *redir);
 // executor.c
 char	no_pipe(t_jobs *jobs, t_job *job);
 void	wait_child(t_mshell *mshell);
-int	handle_job(t_mshell *mshell, t_job *temp_job);
+int		handle_job(t_mshell *mshell, t_job *temp_job);
 char	executor(t_mshell *mshell);
 // heredoc.c
 char	heredoc(t_jobs *jobs, t_job *job, char state);
@@ -212,9 +215,9 @@ char	pipe_handle(t_jobs *jobs, t_job *job);
 int		get_fd(t_jobs *jobs, t_job *job, int i);
 int		get_fd_2(t_jobs *jobs, int *indexes, int *fd);
 int		process_redirection(t_jobs *jobs, t_job *job, int *indexes, int i);
-int	open_out_file(t_jobs *jobs, t_job *job, char *file, int indexes[4]);
-int	open_append_file(t_jobs *jobs, t_job *job, char *file, int indexes[4]);
-int	open_in_file(t_jobs *jobs, t_job *job, char *file, int indexes[4]);
+int		open_out_file(t_jobs *jobs, t_job *job, char *file, int indexes[4]);
+int		open_append_file(t_jobs *jobs, t_job *job, char *file, int indexes[4]);
+int		open_in_file(t_jobs *jobs, t_job *job, char *file, int indexes[4]);
 // run_env.c
 void	lstadd_back2(t_env **lst, t_env *new);
 char	*funckey(char *env, int end);
@@ -230,17 +233,17 @@ void	set_signal(int c);
 // dollar_utils_2.c
 void	check_quotes(char c, bool *sq, bool *dq);
 char	*get_env_value(t_env *env, char *key);
-int	handle_exit_status(t_jobs *jobs, char *new_input, int *len);
-int get_variable_length(char *input, int *i, t_jobs *jobs);
+int		handle_exit_status(t_jobs *jobs, char *new_input, int *len);
+int		get_variable_length(char *input, int *i, t_jobs *jobs);
 void	expand_variable(char *input, char *new_input, t_jobs *jobs,
-		int *indices);
+			int *indices);
 // dollar.c
-int	calculate_variable_length(char *input, int *i, t_jobs *jobs);
-int	calculate_length(char *input, t_jobs *jobs);
+int		calculate_variable_length(char *input, int *i, t_jobs *jobs);
+int		calculate_length(char *input, t_jobs *jobs);
 void	process_variable(char *input, char *new_input, t_jobs *jobs,
-		int *indices);
+			int *indices);
 void	process_input(char *input, char *new_input, t_jobs *jobs,
-		int *indices);
+			int *indices);
 void	get_dollar(char **input_ptr, t_jobs *jobs);
 // parser_utils_2.c
 void	handle_quotes(t_split *s, char *input);
@@ -250,17 +253,17 @@ void	handle_word_allocation(char *input, char **str, t_split *s, int word);
 // parser_utils.c
 char	**free_array(char **ptr, int i);
 void	init_split(t_split *s);
-int	skip_whitespace(char *input, int i, t_split *s);
+int		skip_whitespace(char *input, int i, t_split *s);
 char	*put_word(char *word, char *input, int start, int word_len);
 char	**split_words(char *input, char **str, unsigned int word_count);
 // parser.c
-int	word_counter(char *input);
+int		word_counter(char *input);
 char	**get_token(char *input);
 
 // main.c
 void	free_env_list(t_env *env);
 char	ctrl_redir_continue(t_job *temp, char *arg, char *signal,
-		char *arg_net);
+			char *arg_net);
 void	assign_signal(char *arg, char *signal);
 char	handle_distribution(t_job *temp, char *arg, char *signal);
 
@@ -268,13 +271,13 @@ char	handle_distribution(t_job *temp, char *arg, char *signal);
 char	append_files_order(t_job *temp, char *arg);
 char	ctrl_redir(t_job *temp, char *arg, char *signal);
 char	ctrl_redir_continue(t_job *temp, char *arg, char *signal,
-		char *arg_net);
+			char *arg_net);
 void	assign_signal(char *arg, char *signal);
-int	check_redir_list(char **redir_list, char *arg_trimmed);
+int		check_redir_list(char **redir_list, char *arg_trimmed);
 char	ctrl_append(t_redir *redir, char *arg);
 
 // job_utils.c
-int	init_new_job(t_job **temp, char **tokens);
+int		init_new_job(t_job **temp, char **tokens);
 char	fill_jobs_from_tokens(t_mshell *shell, char **tokens);
 void	reset_job_list(t_mshell *mshell);
 void	free_nec(t_mshell *mshell);
@@ -283,7 +286,7 @@ void	free_nec(t_mshell *mshell);
 void	initialize_shell(t_mshell *mshell, char **env, t_env **env_list);
 void	run_shell(t_mshell *mshell);
 void	cleanup_shell(t_mshell *mshell);
-int	process_user_input(char *input, t_mshell *mshell);
+int		process_user_input(char *input, t_mshell *mshell);
 
 // job_utils.c
 bool	is_special_char(const char *token);

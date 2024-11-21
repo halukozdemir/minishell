@@ -18,7 +18,7 @@
 void	is_builtin(t_job *job)
 {
 	if (job->args && !ft_strncmp(job->args[0], "pwd", 3)
-			&& ft_strlen(job->args[0]) == 3)
+		&& ft_strlen(job->args[0]) == 3)
 		job->is_builtin = true;
 	else if (job->args && !ft_strncmp(job->args[0], "cd", 2)
 		&& ft_strlen(job->args[0]) == 2)
