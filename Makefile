@@ -32,7 +32,6 @@ GREY=\033[90m
 LIGHT_GREY=\033[37m
 
 all : $(READLINE) $(LIBFT) $(NAME)
-	@make clean
 
 $(READLINE):
 	@echo "$(YELLOW)Compiling readline please wait$(GREEN)"
