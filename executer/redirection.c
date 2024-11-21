@@ -6,39 +6,27 @@
 /*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/18 16:37:02 by halozdem          #+#    #+#             */
-/*   Updated: 2024/11/20 21:59:41 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/11/21 13:50:04 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
 
-int	get_fd(t_jobs *jobs, t_job *job)
+int	get_fd(t_jobs *jobs, t_job *job, int i)
 {
 	int	fd;
 	int	indexes[4];
-	int	i;
 
 	fd = 1;
-	indexes[0] = 0; // i_out
-	indexes[1] = 0; // i_app
-	indexes[2] = 0; // i_in
+	indexes[0] = 0;
+	indexes[1] = 0;
+	indexes[2] = 0;
 	indexes[3] = -1;
-	i = -1;
 	while (job->redir->files_order && job->redir->files_order[++i])
 	{
 		fd = process_redirection(jobs, job, indexes, i);
-		if (fd == -1)
-		{
-			jobs->mshell->doll_quest = 1;
-			return (dup2(jobs->mshell->backup_fd[0], 0), close(jobs->mshell->backup_fd[0])
-			, dup2(jobs->mshell->backup_fd[1], 1), close(jobs->mshell->backup_fd[1]), -1);
-		}
-		if (!indexes[3])
-			dup2(fd, 0);
-		else if (indexes[3] == 1)
-			dup2(fd, 1);
-		if (fd != 1)
-			close(fd);
+		if (get_fd_2(jobs, indexes, &fd) == -1)
+			return (-1);
 	}
 	return (fd);
 }

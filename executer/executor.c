@@ -17,7 +17,7 @@ char	no_pipe(t_jobs *jobs, t_job *job)
 	int	fd;
 
 	is_builtin(job);
-	fd = get_fd(jobs, job);
+	fd = get_fd(jobs, job, -1);
 	if (fd == -1)
 		return (EXIT_FAILURE);
 	if (job->is_builtin == false)

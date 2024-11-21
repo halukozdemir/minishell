@@ -6,7 +6,7 @@
 /*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/18 16:49:46 by halozdem          #+#    #+#             */
-/*   Updated: 2024/11/18 16:50:06 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/11/21 13:46:31 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ void	pipe_child_process(t_jobs *jobs, t_job *job, int *pipe_fd)
 	}
 	fd = 1;
 	if (job->redir->in_files || job->redir->out_files || job->redir->appends)
-		fd = get_fd(jobs, job);
+		fd = get_fd(jobs, job, -1);
 	if (fd == -1)
 		exit(1);
 	is_builtin(job);
