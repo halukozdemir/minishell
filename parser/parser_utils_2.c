@@ -43,11 +43,11 @@ void	process_quotes_and_length(t_split *s, char *input)
 
 void	handle_word_allocation(char *input, char **str, t_split *s, int word)
 {
-	if (ft_strchr(SPECIAL_CHARS, input[s->i]) && !s->in_quote
+	if (input[s->i] && ft_strchr(SPECIAL_CHARS, input[s->i]) && !s->in_quote
 		&& s->word_len == 0)
 	{
 		s->word_len = 1;
-		if (input[s->i] == input[s->i + 1])
+		if (input[s->i + 1] && (input[s->i] == input[s->i + 1]))
 		{
 			s->i++;
 			s->word_len = 2;

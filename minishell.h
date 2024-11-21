@@ -246,7 +246,7 @@ void	run_shell(t_mshell *mshell);
 void	cleanup_shell(t_mshell *mshell);
 int		process_user_input(char *input, t_mshell *mshell);
 bool	is_special_char(const char *token);
-bool	check_syntax_errors(char **tokens);
-bool	check_unclosed_quotes(const char *input);
+bool	check_syntax_errors(char **tokens, t_mshell *mshell);
+bool	check_unclosed_quotes(const char *input, t_mshell *mshell);
 
 #endif

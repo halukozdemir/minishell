@@ -6,7 +6,7 @@
 /*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/18 18:54:57 by halozdem          #+#    #+#             */
-/*   Updated: 2024/11/20 16:25:39 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/11/21 17:08:07 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ bool	is_special_char(const char *token)
 		|| ft_strncmp(token, ">>", 3) == 0);
 }
 
-bool	syntax_error_loop(char **tokens, int i)
+static bool	syntax_error_loop(char **tokens, int i, t_mshell *mshell)
 {
 	if (ft_strncmp(tokens[i], "|", 2) == 0)
 	{
@@ -27,7 +27,7 @@ bool	syntax_error_loop(char **tokens, int i)
 					+ 1]))
 		{
 			ft_putendl_fd("Syntax error near unexpected token '|'", 2);
-			return (true);
+			return (mshell->doll_quest = 258, true);
 		}
 	}
 	if (is_special_char(tokens[i]) && ft_strncmp(tokens[i], "|", 2) != 0)
@@ -35,32 +35,32 @@ bool	syntax_error_loop(char **tokens, int i)
 		if (tokens[i + 1] == NULL || is_special_char(tokens[i + 1]))
 		{
 			ft_putendl_fd("Syntax error near unexpected token", 2);
-			return (true);
+			return (mshell->doll_quest = 258, true);
 		}
 	}
 	if (ft_strncmp(tokens[i], "||", 3) == 0)
 	{
 		ft_putendl_fd("Syntax error near unexpected token", 2);
-		return (true);
+		return (mshell->doll_quest = 258, true);
 	}
 	return (false);
 }
 
-bool	check_syntax_errors(char **tokens)
+bool	check_syntax_errors(char **tokens, t_mshell *mshell)
 {
 	int	i;
 
 	i = 0;
 	while (tokens[i])
 	{
-		if (syntax_error_loop(tokens, i) == true)
+		if (syntax_error_loop(tokens, i, mshell) == true)
 			return (true);
 		i++;
 	}
 	return (false);
 }
 
-bool	check_unclosed_quotes(const char *input)
+bool	check_unclosed_quotes(const char *input, t_mshell *mshell)
 {
 	char	quote;
 
@@ -79,7 +79,7 @@ bool	check_unclosed_quotes(const char *input)
 	if (quote != '\0')
 	{
 		ft_putendl_fd("Syntax error: Unclosed quote", 2);
-		return (true);
+		return (mshell->doll_quest = 258, true);
 	}
 	return (false);
 }

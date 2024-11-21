@@ -6,7 +6,7 @@
 /*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/18 18:52:24 by halozdem          #+#    #+#             */
-/*   Updated: 2024/11/21 15:16:55 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/11/21 17:32:48 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,8 +31,10 @@ void	run_shell(t_mshell *mshell)
 		reset_job_list(mshell);
 		set_signal(MAIN_SF);
 		input = readline("minishell> ");
+		input = ft_strtrim(input, " \t\r\v\f");
 		if (!input)
 		{
+			printf("sdfs\n");
 			free(input);
 			break ;
 		}

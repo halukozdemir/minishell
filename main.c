@@ -75,10 +75,10 @@ int	process_user_input(char *input, t_mshell *mshell)
 
 	add_history(input);
 	get_dollar(&input, mshell->jobs);
-	if (!input[0] || check_unclosed_quotes(input))
+	if (!input[0] || check_unclosed_quotes(input, mshell))
 		return ((free(input)), EXIT_FAILURE);
 	cmd = get_token(input);
-	if (!cmd || check_syntax_errors(cmd))
+	if (!cmd || check_syntax_errors(cmd, mshell))
 		return ((free(input)), (free_str_arr(cmd)), EXIT_FAILURE);
 	if (fill_jobs_from_tokens(mshell, cmd) == EXIT_FAILURE)
 		return ((free(input)), (free_str_arr(cmd)), EXIT_FAILURE);

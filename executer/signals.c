@@ -37,9 +37,9 @@ void	handler_heredoc(int status)
 {
 	if (status == SIGINT)
 	{
-		// rl_replace_line("", 0);
+		rl_replace_line("", 0);
 		ft_putchar_fd('\n', STDOUT_FILENO);
-		// rl_on_new_line();
+		rl_on_new_line();
 		exit(130);
 	}
 }

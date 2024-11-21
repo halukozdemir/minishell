@@ -8,7 +8,7 @@ executer/exec_error_2.c executer/exec_error.c executer/executor_utils_2.c  execu
 parser/job_utils.c parser/redir_utils.c parser/shell_utils.c parser/syntax_utils.c executer/redirection_2.c
 
 CC = cc
-CFLAGS = -Wall -Werror -Wextra -I$(PWD)/readline/include -g
+CFLAGS = -Wall -Werror -Wextra -I$(PWD)/readline/include -g -fsanitize=address
 RM = rm -rf
 LIBFT = lib/libft/libft.a
 READLINE = readline
