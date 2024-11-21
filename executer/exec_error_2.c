@@ -6,7 +6,7 @@
 /*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/18 16:34:26 by halozdem          #+#    #+#             */
-/*   Updated: 2024/11/20 21:57:18 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/11/21 13:09:47 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,13 +58,13 @@ char	file_control(t_jobs *jobs, t_job *job, char *file, int fd)
 	if (access(file, F_OK))
 	{
 		jobs->mshell->doll_quest = 1;
-		access_error(file, ": No such file or directory\n");
+		access_error(jobs, file, ": No such file or directory\n");
 		return (EXIT_FAILURE);
 	}
 	if (access(file, R_OK))
 	{
 		jobs->mshell->doll_quest = 1;
-		access_error(file, ": Permission denied\n");
+		access_error(jobs, file, ": Permission denied\n");
 		return (EXIT_FAILURE);
 	}
 	if (redir_error(jobs, job, file, fd))

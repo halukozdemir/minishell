@@ -72,7 +72,7 @@ void	process_variable(char *input, char *new_input, t_jobs *jobs,
 		new_input[indices[1]++] = '$';
 	else if (input[indices[0]] == '?')
 	{
-		handle_exit_status(new_input, &indices[1]);
+		handle_exit_status(jobs, new_input, &indices[1]);
 		indices[0]++;
 	}
 	else if (ft_isalnum(input[indices[0]]) || input[indices[0]] == '_')

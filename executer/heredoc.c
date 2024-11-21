@@ -6,7 +6,7 @@
 /*   By: halozdem <halozdem@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/18 16:38:32 by halozdem          #+#    #+#             */
-/*   Updated: 2024/11/20 21:59:25 by halozdem         ###   ########.fr       */
+/*   Updated: 2024/11/21 13:14:30 by halozdem         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,10 +26,7 @@ char	heredoc(t_jobs *jobs, t_job *job, char state)
 	close(pipe_fd[0]);
 	close(pipe_fd[1]);
 	wait_for_child(jobs, job->pid, &temp_status, state);
-	if (jobs->mshell->doll_quest == 130)
-		return (EXIT_FAILURE);
-	else
-		return (EXIT_SUCCESS);
+	return (EXIT_SUCCESS);
 }
 
 void	child_process(t_jobs *jobs, t_job *job, char state, int *pipe_fd)
