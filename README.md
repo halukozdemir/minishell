@@ -212,7 +212,9 @@ This project was developed within the scope of the Ecole42 education program.
 ## 👨‍💻 Geliştirici / Developer
 
 **Haluk Özdemir**  
-Ecole42 Istanbul - System Programming
+42 Istanbul - System Programming
+**Betül Yıldız**
+42 Istanbul - System Programming
 
 ---
 
